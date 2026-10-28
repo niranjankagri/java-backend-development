@@ -18,6 +18,10 @@ public final class GroupDtos {
     public record CreateGroup(@NotBlank @Size(max = 100) String name, @NotNull Long createdByUserId) {
     }
 
+    /** PATCH /api/groups/{id} body. */
+    public record RenameGroup(@NotBlank @Size(max = 100) String name) {
+    }
+
     /** POST /api/groups/{id}/members body. */
     public record AddMember(@NotNull Long userId) {
     }
