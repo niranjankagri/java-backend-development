@@ -28,7 +28,7 @@ One session is added per day, each in its own pull request.
 | 14 | [Unit Testing with JUnit & Mockito](session-14-junit-mockito/README.md) | Done |
 | 15 | [Redis & Caching](session-15-redis-caching/README.md) | Done |
 | 16 | [Spring Security & Authentication](session-16-spring-security/README.md) | Done |
-| 17 | Splitwise Backend: Advanced Enhancements | Planned |
+| 17 | [Splitwise Backend: Advanced Enhancements](session-17-splitwise-advanced/README.md) | Done |
 | 18 | OAuth 2 & GitHub Integration | Planned |
 | 19 | Microservices | Planned |
 | 20 | Messaging & Resilience | Planned |
