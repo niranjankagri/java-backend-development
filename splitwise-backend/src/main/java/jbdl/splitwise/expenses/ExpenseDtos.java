@@ -21,6 +21,7 @@ public final class ExpenseDtos {
      * POST /api/groups/{groupId}/expenses body. `value` of a participant means: nothing for EQUAL,
      * the amount for EXACT, the percentage for PERCENT.
      */
+    @ValidSplitValues // Session 17: the values must fit the split type (a rule across fields)
     public record AddExpense(
             @NotBlank @Size(max = 200) String description,
             @NotNull @Positive @Digits(integer = 10, fraction = 2) BigDecimal amount,
