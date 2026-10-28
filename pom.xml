@@ -25,6 +25,8 @@
         <module>session-09-spring-boot-advanced</module>
         <module>session-10-jdbc</module>
         <module>session-11-jpa</module>
+        <!-- The Splitwise project: built in Sessions 12, 13 and 17 -->
+        <module>splitwise-backend</module>
     </modules>
 
     <properties>
