@@ -2,6 +2,7 @@ package jbdl.splitwise;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 /**
  * Splitwise-like expense sharing. Layers, from the outside in:
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * repository and entities, so everything about one feature is in one place.
  */
 @SpringBootApplication
+@EnableCaching // Session 17: cached balances (BalanceCalculator)
 public class SplitwiseApplication {
 
     public static void main(String[] args) {

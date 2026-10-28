@@ -3,7 +3,6 @@ package jbdl.splitwise.expenses;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import jbdl.splitwise.common.BusinessRuleException;
@@ -17,6 +16,7 @@ import jbdl.splitwise.expenses.split.SplitStrategies;
 import jbdl.splitwise.groups.ExpenseGroup;
 import jbdl.splitwise.groups.GroupService;
 import jbdl.splitwise.users.AppUser;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,11 +30,14 @@ public class ExpenseService {
     private final GroupService groups;
     private final ExpenseRepository expenses;
     private final SettlementRepository settlements;
+    private final BalanceCalculator calculator;
 
-    public ExpenseService(GroupService groups, ExpenseRepository expenses, SettlementRepository settlements) {
+    public ExpenseService(GroupService groups, ExpenseRepository expenses, SettlementRepository settlements,
+                          BalanceCalculator calculator) {
         this.groups = groups;
         this.expenses = expenses;
         this.settlements = settlements;
+        this.calculator = calculator;
     }
 
     // ---------- Expense creation flow ----------
@@ -42,7 +45,9 @@ public class ExpenseService {
     /**
      * 1. load the group (404 if unknown)   2. payer and participants must be members
      * 3. compute the shares with the strategy for the split type   4. save expense + shares (cascade)
+     * The group's cached balances are evicted after the method (Session 17).
      */
+    @CacheEvict(value = BalanceCalculator.CACHE, key = "#groupId")
     @Transactional
     public ExpenseView addExpense(long groupId, AddExpense request) {
         ExpenseGroup group = groups.get(groupId);
@@ -87,31 +92,10 @@ public class ExpenseService {
 
     // ---------- Balances ----------
 
-    /**
-     * balance = paid for others - own shares + repaid to others - received from others.
-     * Every member appears, with 0.00 if they have no activity. The four sums come from the database
-     * (one GROUP BY query each), so the cost doesn't grow with the number of expenses loaded into Java.
-     */
-    @Transactional(readOnly = true)
+    /** Every member's balance (0.00 if no activity), from the cached BalanceCalculator. */
     public Map<Long, BigDecimal> balanceAmounts(long groupId) {
-        ExpenseGroup group = groups.get(groupId);
-        Map<Long, BigDecimal> balance = new LinkedHashMap<>();
-        for (AppUser member : group.getMembers()) {
-            balance.put(member.getId(), new BigDecimal("0.00"));
-        }
-        addAll(balance, expenses.totalPaidPerUser(groupId), true);
-        addAll(balance, expenses.totalOwedPerUser(groupId), false);
-        addAll(balance, settlements.totalRepaidPerUser(groupId), true);
-        addAll(balance, settlements.totalReceivedPerUser(groupId), false);
-        return balance;
-    }
-
-    private static void addAll(Map<Long, BigDecimal> balance, List<UserTotal> totals, boolean add) {
-        for (UserTotal total : totals) {
-            BigDecimal current = balance.getOrDefault(total.userId(), BigDecimal.ZERO);
-            BigDecimal change = add ? total.total() : total.total().negate();
-            balance.put(total.userId(), current.add(change));
-        }
+        groups.get(groupId); // 404 for an unknown group (the calculator assumes it exists)
+        return calculator.balances(groupId);
     }
 
     @Transactional(readOnly = true)
@@ -146,9 +130,13 @@ public class ExpenseService {
     /**
      * Records "from paid to". Refused when it would not reduce a real debt: the payer must owe at least
      * that much and the receiver must be owed at least that much (no overpaying, no paying yourself).
+     *
+     * Returns nothing on purpose: the cached balances are evicted AFTER this method returns, so balances
+     * computed inside it would be the old cached ones. The controller asks for fresh balances afterwards.
      */
+    @CacheEvict(value = BalanceCalculator.CACHE, key = "#groupId")
     @Transactional
-    public List<BalanceView> recordSettlement(long groupId, long fromUserId, long toUserId, BigDecimal amount) {
+    public void recordSettlement(long groupId, long fromUserId, long toUserId, BigDecimal amount) {
         ExpenseGroup group = groups.get(groupId);
         AppUser from = member(group, fromUserId);
         AppUser to = member(group, toUserId);
@@ -163,7 +151,6 @@ public class ExpenseService {
                     + owes.min(owed).max(BigDecimal.ZERO));
         }
         settlements.save(new Settlement(group, from, to, amount));
-        return balances(groupId);
     }
 
     /** The user, if they are a member of the group; otherwise a BusinessRuleException (409). */
