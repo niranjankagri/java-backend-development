@@ -2,6 +2,8 @@ package jbdl.splitwise.users;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,15 +24,28 @@ public class AppUser {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 150) // one account per email address
+    @Column(nullable = false, unique = true, length = 150) // one account per email address, also the login name
     private String email;
+
+    /** BCrypt hash of the password (Session 16), never the password itself. */
+    @Column(nullable = false, length = 100)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private Role role = Role.USER;
 
     protected AppUser() {
     }
 
-    public AppUser(String name, String email) {
+    public AppUser(String name, String email, String passwordHash) {
         this.name = name;
         this.email = email;
+        this.passwordHash = passwordHash;
+    }
+
+    public void makeAdmin() {
+        this.role = Role.ADMIN;
     }
 
     public Long getId() {
@@ -43,5 +58,13 @@ public class AppUser {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public Role getRole() {
+        return role;
     }
 }

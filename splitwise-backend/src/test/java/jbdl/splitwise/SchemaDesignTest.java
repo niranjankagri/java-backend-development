@@ -59,13 +59,14 @@ class SchemaDesignTest {
 
         assertThat(tables).containsExactly(
                 "app_user", "expense", "expense_group", "expense_share", "group_member", "settlement");
+        // (Session 17 added columns, not tables: password_hash and role on app_user, version on expense_group)
     }
 
     @Test
     @DisplayName("A full scenario can be stored: users, a group, an expense with shares, a settlement")
     void wholeModel() {
-        AppUser asha = users.save(new AppUser("Asha", "asha@example.com"));
-        AppUser ravi = users.save(new AppUser("Ravi", "ravi@example.com"));
+        AppUser asha = users.save(new AppUser("Asha", "asha@example.com", "{noop}not-used-here"));
+        AppUser ravi = users.save(new AppUser("Ravi", "ravi@example.com", "{noop}not-used-here"));
         ExpenseGroup goa = new ExpenseGroup("Goa trip", asha);
         goa.addMember(ravi);
         groups.save(goa);
@@ -92,10 +93,10 @@ class SchemaDesignTest {
     @Test
     @DisplayName("The database refuses a second account with the same email")
     void uniqueEmail() {
-        users.save(new AppUser("Asha", "asha@example.com"));
+        users.save(new AppUser("Asha", "asha@example.com", "{noop}not-used-here"));
 
         assertThatThrownBy(() -> {
-            users.save(new AppUser("Asha again", "asha@example.com"));
+            users.save(new AppUser("Asha again", "asha@example.com", "{noop}not-used-here"));
             entityManager.flush(); // the INSERT is sent here
         }).isInstanceOf(DataIntegrityViolationException.class);
     }
@@ -103,7 +104,7 @@ class SchemaDesignTest {
     @Test
     @DisplayName("The split type is stored by name, not by position")
     void enumStoredAsText() {
-        AppUser asha = users.save(new AppUser("Asha", "asha@example.com"));
+        AppUser asha = users.save(new AppUser("Asha", "asha@example.com", "{noop}not-used-here"));
         ExpenseGroup group = groups.save(new ExpenseGroup("Flat", asha));
         expenses.save(new Expense(group, "Rent", new BigDecimal("20000.00"), asha, SplitType.PERCENT));
         entityManager.flush();

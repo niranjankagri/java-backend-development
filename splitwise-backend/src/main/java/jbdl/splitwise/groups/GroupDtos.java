@@ -14,8 +14,11 @@ public final class GroupDtos {
     private GroupDtos() {
     }
 
-    /** POST /api/groups body: the creator becomes the first member. */
-    public record CreateGroup(@NotBlank @Size(max = 100) String name, @NotNull Long createdByUserId) {
+    /**
+     * POST /api/groups body. Session 17: the creator is no longer in the body: it is the logged-in user,
+     * so nobody can create groups in someone else's name (Session 16, topic 3).
+     */
+    public record CreateGroup(@NotBlank @Size(max = 100) String name) {
     }
 
     /** PATCH /api/groups/{id} body. */
