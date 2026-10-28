@@ -10,7 +10,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -21,8 +23,12 @@ import jbdl.splitwise.users.AppUser;
 /**
  * One payment made by one member for the group, e.g. "Dinner, 900.00, paid by Asha". Its shares say
  * how much of it each person owes. Money is BigDecimal with 2 decimals, never double (Session 1).
+ *
+ * The index on group_id makes "all expenses of a group" fast once there are many groups: without it
+ * the database reads the whole table for every balance (Session 13, data modelling and optimisation).
  */
 @Entity
+@Table(indexes = @Index(name = "idx_expense_group", columnList = "group_id"))
 public class Expense {
 
     @Id
