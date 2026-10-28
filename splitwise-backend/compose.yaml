@@ -1,0 +1,44 @@
+# Session 17: the whole stack on one machine: the app, PostgreSQL and Redis.
+#   cd splitwise-backend && SPLITWISE_ADMIN_PASSWORD=... DATABASE_PASSWORD=... docker compose up --build
+# Secrets come from your shell's environment (or a .env file next to this file, never committed).
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: splitwise
+      POSTGRES_USER: splitwise
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD}
+    volumes:
+      - splitwise-db:/var/lib/postgresql/data   # data survives container restarts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U splitwise -d splitwise"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ..                         # the repository root
+      dockerfile: splitwise-backend/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/splitwise   # service names work as host names
+      DATABASE_USER: splitwise
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD}
+      REDIS_HOST: redis
+      SPLITWISE_ADMIN_PASSWORD: ${SPLITWISE_ADMIN_PASSWORD:?set SPLITWISE_ADMIN_PASSWORD}
+    depends_on:                           # start the app only when both are healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  splitwise-db:
