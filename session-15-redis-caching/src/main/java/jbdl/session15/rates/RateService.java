@@ -43,15 +43,8 @@ public class RateService {
         return newRate;
     }
 
-    /**
-     * Throw away every cached rate, e.g. once a day when the bank publishes new ones.
-     *
-     * beforeInvocation = true makes Spring call Cache.invalidate(), which empties the cache at once.
-     * Without it Spring calls Cache.clear(), which may run later ("asynchronously or deferred" in its
-     * contract): with the in-memory cache that's instant anyway, but against a real Redis server the
-     * RedisTest found the key still there right after the call.
-     */
-    @CacheEvict(value = CACHE, allEntries = true, beforeInvocation = true)
+    /** Throw away every cached rate, e.g. once a day when the bank publishes new ones. */
+    @CacheEvict(value = CACHE, allEntries = true)
     public void clearCache() {
         // nothing to do here: the annotation does the work
     }

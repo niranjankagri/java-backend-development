@@ -21,7 +21,7 @@ browser ──(1) browser cache: maybe no request at all──▶ server ──(
 |---|---|
 | `@Cacheable("rates")` | Return the cached value if present; else run the method and store the result (key = the argument) |
 | `@CachePut(value = "rates", key = "#currency")` | Always run the method and store the result (keeps the cache fresh after an update) |
-| `@CacheEvict(value = "rates", allEntries = true, beforeInvocation = true)` | Remove entries (all of them here) |
+| `@CacheEvict(value = "rates", allEntries = true)` | Remove entries (all of them here; or one: `key = "#currency"`) |
 | `@EnableCaching` (on the application) | Switch the annotations on |
 
 They work through a proxy, like `@Transactional`: a call from inside the same class bypasses the cache.

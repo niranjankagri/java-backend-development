@@ -58,11 +58,19 @@ Testcontainers starts a fresh Redis in Docker for the test class and removes it 
 
 ### What the real Redis taught us
 
-The first version of `clearCache()` used plain `@CacheEvict(allEntries = true)`. The in-memory tests
-passed, but `RedisTest` found `rates::EUR` **still in Redis** right after the call. Spring's
-`Cache.clear()` is allowed to work "asynchronously or deferred"; `beforeInvocation = true` makes
-Spring call `invalidate()` instead, which removes the entries immediately. A mock or an in-memory
-cache would never have shown this.
+The in-memory tests always passed. Against a real Redis, `RedisTest` failed **sometimes** (2 of the
+first runs): a second `rateToInr("USD")` right after the first still called the slow provider, and
+after `clearCache()` the key `rates::EUR` was occasionally still there.
+
+The cause: Spring Data Redis 4 can **write cache entries asynchronously**. `@Cacheable` returns the
+value and the write to Redis finishes a moment later, so a very fast second read could miss it, and an
+eviction could run before the write landed (and the write then re-created the key).
+[`RedisCacheConfig`](../../src/main/java/jbdl/session15/redis/RedisCacheConfig.java) switches to
+`immediateWrites()`; after that the module passed 5 runs out of 5.
+
+(A first guess, that `Cache.clear()` itself was deferred, was tested and turned out wrong: with immediate
+writes the plain `@CacheEvict` works every time, so that change was taken out again.) Flaky tests are
+worth chasing to the real cause: here they pointed to genuine behaviour of the production cache.
 
 ## Tests in this module
 
