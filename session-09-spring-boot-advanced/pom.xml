@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Session 9: AOP for cross-cutting concerns, Lombok to remove boilerplate, logging with SLF4J/Logback. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.niranjankagri</groupId>
+        <artifactId>java-backend-development</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>session-09-spring-boot-advanced</artifactId>
+    <name>Session 9: Spring Boot Advanced Features</name>
+
+    <properties>
+        <!-- the version Spring Boot 4.1.2 manages; repeated here for the annotation processor path -->
+        <lombok.version>1.18.48</lombok.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <!-- Spring AOP + AspectJ annotations (@Aspect, @Around...) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
+        </dependency>
+        <!-- Lombok works at compile time only (an annotation processor): "provided" keeps it out of the jar -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Same as the parent's settings, minus the "processing" lint: with Lombok running as an
+                         annotation processor, javac would warn that no processor claimed Spring's annotations
+                         (@Service, @GetMapping...). That's expected, not a problem, so only that one is switched off. -->
+                    <compilerArgs>
+                        <arg>-Xlint:all,-processing</arg>
+                        <arg>-Werror</arg>
+                    </compilerArgs>
+                    <!-- Since JDK 23 javac runs annotation processors only when they are configured
+                         explicitly; Lombok generates the getters, builders and loggers here -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
