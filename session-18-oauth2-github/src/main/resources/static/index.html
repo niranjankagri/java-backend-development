@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Session 18: Log in with GitHub</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    a.button, button { display: inline-block; padding: 10px 16px; border-radius: 8px; border: 0; background: #24292f; color: #fff; text-decoration: none; font: inherit; cursor: pointer; }
+    li { margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <h1>Session 18: Log in with GitHub</h1>
+  <!-- Spring Security handles this address: it sends the browser to GitHub's login and consent page. -->
+  <p><a class="button" href="/oauth2/authorization/github">Log in with GitHub</a></p>
+  <p>After logging in:</p>
+  <ul>
+    <li><a href="/api/me">/api/me</a>: who you are and your roles</li>
+    <li><a href="/api/github/repos">/api/github/repos</a>: your recent public repositories, read with your access token</li>
+    <li><a href="/api/admin/members">/api/admin/members</a>: everyone who logged in (admins only)</li>
+  </ul>
+  <!-- Logging out changes state, so it must be a POST carrying the CSRF token. Spring Security's own
+       /logout page shows a confirm button that sends exactly that. -->
+  <p><a href="/logout">Log out</a></p>
+</body>
+</html>
