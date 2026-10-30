@@ -30,7 +30,7 @@ One session is added per day, each in its own pull request.
 | 16 | [Spring Security & Authentication](session-16-spring-security/README.md) | Done |
 | 17 | [Splitwise Backend: Advanced Enhancements](session-17-splitwise-advanced/README.md) | Done |
 | 18 | [OAuth 2 & GitHub Integration](session-18-oauth2-github/README.md) | Done |
-| 19 | Microservices | Planned |
+| 19 | [Microservices](session-19-microservices/README.md) | Done |
 | 20 | Messaging & Resilience | Planned |
 | 21 | Airbnb Backend System (Part 1) | Planned |
 | 22 | Airbnb Backend System (Part 2) | Planned |
