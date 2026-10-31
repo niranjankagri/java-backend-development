@@ -35,6 +35,7 @@
         <module>session-20-messaging-resilience</module>
         <!-- The Airbnb project: built in Sessions 21 to 24 -->
         <module>airbnb-backend</module>
+        <module>session-25-ai-toolkit</module>
     </modules>
 
     <properties>
