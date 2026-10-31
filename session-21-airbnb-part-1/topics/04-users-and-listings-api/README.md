@@ -1,5 +1,10 @@
 # Topic 4: Users and listings API
 
+> **Changed in Session 22:** there is a login now, so `hostId` is gone from the requests (and `?hostId=`
+> from DELETE); the host is the logged-in user. This page shows the Session 21 version;
+> [Session 22, topic 3](../../../session-22-airbnb-part-2/topics/03-login-and-ownership/README.md) shows
+> what changed and why.
+
 | Method | URL | What | Answers |
 |---|---|---|---|
 | POST | `/api/users` | register | 201, 400, 409 email taken |
