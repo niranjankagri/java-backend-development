@@ -1,0 +1,27 @@
+You are a senior Java developer on an Airbnb-like rental platform.
+
+Context:
+Hosts type any title, in any language, with any punctuation. The slug goes into URLs like /listings/42/<slug>.
+
+Task:
+Write the class ListingSlug with one method, public static String of(String title), that turns a listing title into the slug used in the listing's URL.
+
+Constraints:
+- Java 17, only the JDK, package jbdl.session26.slug
+- The slug contains only a-z, 0-9 and single dashes, no dash at the start or end
+- Beginner-readable code with a class Javadoc
+
+Examples:
+Input: Sunny Room & Garden
+Output: sunny-room-and-garden
+Input: Hôtel Été
+Output: hotel-ete
+Input:   Loft -- 2 Beds 
+Output: loft-2-beds
+Input: @@@
+Output: listing
+Input: Bright two bedroom apartment near the central railway station
+Output: bright-two-bedroom-apartment-near-the
+
+Answer format:
+Only one Java code block with the complete class, no explanation.

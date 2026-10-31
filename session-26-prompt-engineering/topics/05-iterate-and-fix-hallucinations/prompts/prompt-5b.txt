@@ -1,0 +1,5 @@
+Task:
+What does the Spring Boot 4.1 property spring.kafka.consumer.idempotent-delivery=true do? Answer in 3 sentences.
+
+Constraints:
+- First check that what I ask about really exists in that version. If it does not, or you are not sure, say so and show what does exist instead
