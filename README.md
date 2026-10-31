@@ -34,7 +34,7 @@ One session is added per day, each in its own pull request.
 | 20 | [Messaging & Resilience](session-20-messaging-resilience/README.md) | Done |
 | 21 | [Airbnb Backend System (Part 1)](session-21-airbnb-part-1/README.md) | Done |
 | 22 | [Airbnb Backend System (Part 2)](session-22-airbnb-part-2/README.md) | Done |
-| 23 | Deployment of Airbnb Backend Application | Planned |
+| 23 | [Deployment of Airbnb Backend Application](session-23-airbnb-deployment/README.md) | Done |
 | 24 | Deployment of Airbnb Backend Application (Continued) | Planned |
 | 25 | The AI Toolkit & Developer Setup | Planned |
 | 26 | Prompt Engineering & Vibe Coding | Planned |
