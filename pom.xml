@@ -37,6 +37,7 @@
         <module>airbnb-backend</module>
         <module>session-25-ai-toolkit</module>
         <module>session-26-prompt-engineering</module>
+        <module>session-27-spec-driven-development</module>
     </modules>
 
     <properties>
