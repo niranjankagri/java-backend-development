@@ -39,8 +39,8 @@ public class ListingService {
     }
 
     @Transactional
-    public ListingView create(ListingRequest request) {
-        AppUser host = users.get(request.hostId());   // 404 if the host does not exist
+    public ListingView create(String hostEmail, ListingRequest request) {
+        AppUser host = users.byEmail(hostEmail);      // the logged-in user is the host
         Listing listing = new Listing(host, request.title().trim(), request.description(), request.city().trim(),
                 request.maxGuests(), request.bedrooms(), request.nightlyPrice(), amenities(request));
         return ListingView.of(listings.save(listing));
@@ -52,8 +52,8 @@ public class ListingService {
     }
 
     @Transactional
-    public ListingView update(long id, ListingRequest request) {
-        Listing listing = findOwnedBy(id, request.hostId());
+    public ListingView update(long id, String hostEmail, ListingRequest request) {
+        Listing listing = findOwnedBy(id, hostEmail);
         listing.update(request.title().trim(), request.description(), request.city().trim(), request.maxGuests(),
                 request.bedrooms(), request.nightlyPrice(), amenities(request));
         // no save() needed: the entity is managed, JPA writes the changes when the transaction ends
@@ -61,8 +61,29 @@ public class ListingService {
     }
 
     @Transactional
-    public void deactivate(long id, long hostId) {
-        findOwnedBy(id, hostId).deactivate();
+    public void deactivate(long id, String hostEmail) {
+        findOwnedBy(id, hostEmail).deactivate();
+    }
+
+    /**
+     * For BookingService (Session 22): the listing, locked until the caller's transaction ends, so two
+     * bookings of the same listing happen one after the other. Must be called inside a transaction.
+     */
+    @Transactional
+    public Listing lockForBooking(long id) {
+        return listings.findByIdForUpdate(id).orElseThrow(() -> new NotFoundException("listing " + id + " not found"));
+    }
+
+    /** For the other parts (Session 22): the listing, if the logged-in user is its host; 403 otherwise. */
+    @Transactional(readOnly = true)
+    public Listing requireHost(long id, String hostEmail) {
+        return findOwnedBy(id, hostEmail);
+    }
+
+    /** For the other parts (Session 22): the listing entity, or 404. */
+    @Transactional(readOnly = true)
+    public Listing getEntity(long id) {
+        return find(id);
     }
 
     @Transactional(readOnly = true)
@@ -127,10 +148,11 @@ public class ListingService {
         return listings.findById(id).orElseThrow(() -> new NotFoundException("listing " + id + " not found"));
     }
 
-    /** The listing, if hostId is its host; 403 for anyone else. */
-    private Listing findOwnedBy(long id, long hostId) {
+    /** The listing, if the logged-in user is its host; 403 for anyone else. */
+    private Listing findOwnedBy(long id, String hostEmail) {
         Listing listing = find(id);
-        if (listing.getHost().getId() != hostId) {
+        // emails are unique and stored in lower case, so comparing them identifies the user
+        if (!listing.getHost().getEmail().equals(hostEmail)) {
             throw new ForbiddenException("only the host of listing " + id + " can change it");
         }
         return listing;

@@ -32,7 +32,7 @@ class SchemaDesignTest {
     private TestEntityManager db;
 
     private AppUser user(String email) {
-        return db.persist(new AppUser("Asha", email));
+        return db.persist(new AppUser("Asha", email, "{noop}not-used-here"));
     }
 
     private Listing listing(AppUser host, Set<Amenity> amenities) {

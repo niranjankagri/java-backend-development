@@ -23,11 +23,10 @@ public final class ListingDtos {
     /**
      * POST /api/listings and PUT /api/listings/{id} body.
      *
-     * @param hostId who is asking. Until Session 22 adds login, the caller says who they are; that is
-     *               NOT secure, and is replaced by the logged-in user then.
+     * Earlier (Session 21) it also had a hostId: the caller said who they were, which anyone could fake.
+     * Since Session 22 the host is the logged-in user, so the field is gone.
      */
     public record ListingRequest(
-            @NotNull Long hostId,
             @NotBlank @Size(max = 120) String title,
             @Size(max = 2000) String description,
             @NotBlank @Size(max = 80) String city,

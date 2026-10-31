@@ -21,9 +21,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 /**
- * Topic 5: GET /api/listings/search. Each test has its own city, so listings of other tests never
- * show up. Bookings cannot be made through the API before Session 22, so the tests store them
- * directly with BookingRepository, to put them in the way of a search.
+ * Session 21 topic 5: GET /api/listings/search (open to everyone, no login). Each test has its own
+ * city, so listings of other tests never show up. The tests store bookings directly with
+ * BookingRepository, to put them exactly where a search must notice them (and cancelled ones, and
+ * back-to-back ones), without going through the booking rules.
  *
  * Dates are relative to today (search refuses check-in dates in the past), so the tests keep working
  * whatever day they run.
@@ -44,14 +45,14 @@ class ListingSearchTest extends ApiTestSupport {
     private AppUserRepository users;
 
     private String city;
-    private long hostId;
-    private long guestId;
+    private TestUser host;
+    private TestUser guest;
 
     @BeforeEach
     void newCity() throws Exception {
         city = uniqueCity("Goa");
-        hostId = registerUser("Asha");
-        guestId = registerUser("Ravi");
+        host = registerUser("Asha");
+        guest = registerUser("Ravi");
     }
 
     private ResultActions search(String query) throws Exception {
@@ -60,7 +61,7 @@ class ListingSearchTest extends ApiTestSupport {
 
     /** Stores a CONFIRMED booking of the listing from checkIn to checkOut. */
     private Booking book(long listingId, LocalDate checkIn, LocalDate checkOut) {
-        return bookings.save(new Booking(listings.getReferenceById(listingId), users.getReferenceById(guestId),
+        return bookings.save(new Booking(listings.getReferenceById(listingId), users.getReferenceById(guest.id()),
                 checkIn, checkOut, 2, new BigDecimal("1000.00")));
     }
 
@@ -71,9 +72,9 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("By city (any upper/lower case) and number of guests")
     void cityAndGuests() throws Exception {
-        createListing(hostId, "Studio", city, 2, "1500.00");
-        createListing(hostId, "Villa", city, 8, "9000.00");
-        createListing(hostId, "Elsewhere", uniqueCity("Pune"), 8, "2000.00");
+        createListing(host, "Studio", city, 2, "1500.00");
+        createListing(host, "Villa", city, 8, "9000.00");
+        createListing(host, "Elsewhere", uniqueCity("Pune"), 8, "2000.00");
 
         mvc.perform(get("/api/listings/search?city=" + city.toUpperCase() + "&guests=4"))
                 .andExpect(status().isOk())
@@ -84,8 +85,8 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("maxPrice: only listings up to that nightly price")
     void maxPrice() throws Exception {
-        createListing(hostId, "Studio", city, 2, "1500.00");
-        createListing(hostId, "Villa", city, 8, "9000.00");
+        createListing(host, "Studio", city, 2, "1500.00");
+        createListing(host, "Villa", city, 8, "9000.00");
 
         search("&maxPrice=2000")
                 .andExpect(jsonPath("$.listings", hasSize(1)))
@@ -95,8 +96,8 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("With dates: a listing with an overlapping booking is left out")
     void bookedListingLeftOut() throws Exception {
-        long booked = createListing(hostId, "Booked flat", city, 4, "3000.00");
-        createListing(hostId, "Free flat", city, 4, "3000.00");
+        long booked = createListing(host, "Booked flat", city, 4, "3000.00");
+        createListing(host, "Free flat", city, 4, "3000.00");
         book(booked, CHECK_IN.plusDays(1), CHECK_IN.plusDays(5));   // overlaps the last 2 nights
 
         search(dates(CHECK_IN, CHECK_OUT))
@@ -110,7 +111,7 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("Back to back: a booking that ends on our check-in day does not block it")
     void backToBack() throws Exception {
-        long listing = createListing(hostId, "Flat", city, 4, "3000.00");
+        long listing = createListing(host, "Flat", city, 4, "3000.00");
         book(listing, CHECK_IN.minusDays(3), CHECK_IN);              // the previous guest leaves that morning
         book(listing, CHECK_OUT, CHECK_OUT.plusDays(2));              // the next guest arrives as we leave
 
@@ -120,7 +121,7 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("A CANCELLED booking does not block the dates")
     void cancelledBooking() throws Exception {
-        long listing = createListing(hostId, "Flat", city, 4, "3000.00");
+        long listing = createListing(host, "Flat", city, 4, "3000.00");
         Booking booking = book(listing, CHECK_IN, CHECK_OUT);
         booking.cancel();
         bookings.save(booking);
@@ -131,8 +132,8 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("A deactivated listing is never found")
     void deactivatedLeftOut() throws Exception {
-        long listing = createListing(hostId, "Flat", city, 4, "3000.00");
-        mvc.perform(delete("/api/listings/" + listing).param("hostId", String.valueOf(hostId)));
+        long listing = createListing(host, "Flat", city, 4, "3000.00");
+        mvc.perform(delete("/api/listings/" + listing).with(as(host)));
 
         search("").andExpect(jsonPath("$.totalListings").value(0));
     }
@@ -140,11 +141,11 @@ class ListingSearchTest extends ApiTestSupport {
     @Test
     @DisplayName("sort=price and pages: 5 listings, 2 per page, page 1 holds the 3rd and 4th cheapest")
     void sortAndPages() throws Exception {
-        createListing(hostId, "E", city, 2, "5000.00");
-        createListing(hostId, "A", city, 2, "1000.00");
-        createListing(hostId, "C", city, 2, "3000.00");
-        createListing(hostId, "B", city, 2, "2000.00");
-        createListing(hostId, "D", city, 2, "4000.00");
+        createListing(host, "E", city, 2, "5000.00");
+        createListing(host, "A", city, 2, "1000.00");
+        createListing(host, "C", city, 2, "3000.00");
+        createListing(host, "B", city, 2, "2000.00");
+        createListing(host, "D", city, 2, "4000.00");
 
         search("&sort=price&page=1&size=2")
                 .andExpect(jsonPath("$.listings", hasSize(2)))
