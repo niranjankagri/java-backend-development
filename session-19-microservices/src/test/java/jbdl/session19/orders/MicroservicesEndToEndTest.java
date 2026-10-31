@@ -63,13 +63,17 @@ class MicroservicesEndToEndTest {
     @Test
     @DisplayName("Feign + load balancer: the orders are spread over both catalog instances")
     void loadBalancing() {
-        // round robin: with two instances, four orders go 2 + 2
+        // Round robin takes the instances in turn, but NOT always exactly 4 + 4 here: the health check
+        // (every 200 ms in this test) hands the load balancer a fresh instance list each time, and the
+        // two instances can come back in either order. A turn can then land on the same instance twice.
+        // (This test used to expect exactly 2 + 2 of 4 orders and failed about one run in three.)
+        // What matters: the orders are spread, both instances take some, and no other answer appears.
         List<String> pricedBy = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 8; i++) {
             pricedBy.add((String) placeOrder(2, 1).getBody().get("pricedBy"));
         }
         assertThat(pricedBy).containsOnly("catalog-1", "catalog-2");
-        assertThat(pricedBy).filteredOn("catalog-1"::equals).hasSize(2);
+        assertThat(pricedBy).contains("catalog-1", "catalog-2");
     }
 
     @Test

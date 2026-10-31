@@ -89,7 +89,11 @@ next instance) and **circuit breakers**.
 [`MicroservicesEndToEndTest`](../../src/test/java/jbdl/session19/orders/MicroservicesEndToEndTest.java)
 starts two catalog instances and order-service on free ports, all in the test:
 
-- `loadBalancing`: four orders go 2 + 2 to catalog-1 and catalog-2.
+- `loadBalancing`: eight orders are spread over catalog-1 and catalog-2, both take some. Not always
+  exactly 4 + 4: the health check (every 200 ms in the test) hands the load balancer a fresh instance
+  list, in either order, so a turn can land on the same instance twice. The test first expected an
+  exact 2 + 2 of four orders and failed about one run in three; it now checks what round robin with
+  health checks really promises.
 - `failover`: close catalog-2; after the next health check (200 ms in the test) every order is
   priced by catalog-1.
 - `catalogDown`: both instances closed: `503 Catalog unavailable`, not `500`.
