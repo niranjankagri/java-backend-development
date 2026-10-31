@@ -1,0 +1,41 @@
+# Session 24: Render blueprint for the Airbnb backend (session-24-airbnb-cloud, topic 3).
+# Render reads this file from the repository root: Dashboard > New > Blueprint > this repository.
+# It creates a managed PostgreSQL and a web service built from airbnb-backend/Dockerfile, and connects
+# them; no password is written anywhere, Render passes the database's own settings to the service.
+#
+# Free plans: the web service sleeps after 15 minutes without requests (the first request then waits
+# about a minute), and a free PostgreSQL is deleted after 30 days unless upgraded. Fine for a demo,
+# not for real users.
+databases:
+  - name: airbnb-db
+    plan: free
+    region: frankfurt
+    databaseName: airbnb
+    user: airbnb
+    ipAllowList: []                 # no access from the internet: only Render services can connect
+
+services:
+  - type: web
+    name: airbnb-backend
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    dockerContext: .                # the repository root (parent pom, Maven wrapper)
+    dockerfilePath: ./airbnb-backend/Dockerfile
+    buildFilter:                    # a change elsewhere in the course does not redeploy the app
+      paths: ["airbnb-backend/**", "pom.xml"]
+    autoDeployTrigger: checksPass   # deploy a commit of main only after its GitHub checks passed
+    healthCheckPath: /actuator/health/readiness   # a new version gets traffic only when ready
+    envVars:
+      # SPRING_PROFILES_ACTIVE=prod comes from the image; Render sets PORT itself
+      - key: DATABASE_HOST
+        fromDatabase: { name: airbnb-db, property: host }
+      - key: DATABASE_PORT
+        fromDatabase: { name: airbnb-db, property: port }
+      - key: DATABASE_NAME
+        fromDatabase: { name: airbnb-db, property: database }
+      - key: DATABASE_USER
+        fromDatabase: { name: airbnb-db, property: user }
+      - key: DATABASE_PASSWORD
+        fromDatabase: { name: airbnb-db, property: password }
