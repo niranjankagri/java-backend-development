@@ -32,7 +32,7 @@ One session is added per day, each in its own pull request.
 | 18 | [OAuth 2 & GitHub Integration](session-18-oauth2-github/README.md) | Done |
 | 19 | [Microservices](session-19-microservices/README.md) | Done |
 | 20 | [Messaging & Resilience](session-20-messaging-resilience/README.md) | Done |
-| 21 | Airbnb Backend System (Part 1) | Planned |
+| 21 | [Airbnb Backend System (Part 1)](session-21-airbnb-part-1/README.md) | Done |
 | 22 | Airbnb Backend System (Part 2) | Planned |
 | 23 | Deployment of Airbnb Backend Application | Planned |
 | 24 | Deployment of Airbnb Backend Application (Continued) | Planned |
@@ -50,6 +50,7 @@ session-NN-<name>/
   topics/NN-<topic>/README.md    one README per topic; topics with code explain it and link to it
   pom.xml, src/                  only for sessions with code (each is a Maven module)
 splitwise-backend/               the Splitwise project module, grown in Sessions 12, 13 and 17
+airbnb-backend/                  the Airbnb project module, grown in Sessions 21 to 24
 .github/workflows/tests.yml      CI: build + all tests on JDK 17 and 25 for every pull request
 ```
 
