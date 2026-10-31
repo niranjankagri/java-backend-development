@@ -36,7 +36,7 @@ One session is added per day, each in its own pull request.
 | 22 | [Airbnb Backend System (Part 2)](session-22-airbnb-part-2/README.md) | Done |
 | 23 | [Deployment of Airbnb Backend Application](session-23-airbnb-deployment/README.md) | Done |
 | 24 | [Deployment of Airbnb Backend Application (Continued)](session-24-airbnb-cloud/README.md) | Done |
-| 25 | The AI Toolkit & Developer Setup | Planned |
+| 25 | [The AI Toolkit & Developer Setup](session-25-ai-toolkit/README.md) | Done |
 | 26 | Prompt Engineering & Vibe Coding | Planned |
 | 27 | Spec-Driven Development with AI | Planned |
 | 28 | RAG Systems & Context-Aware AI | Planned |
@@ -54,6 +54,7 @@ airbnb-backend/                  the Airbnb project module, grown in Sessions 21
 .github/workflows/tests.yml      CI: build + all tests on JDK 17 and 25 for every pull request
 .github/workflows/airbnb-image.yml   Session 24: the Airbnb image built, smoke-tested and pushed to ghcr.io
 render.yaml                      Session 24: the Airbnb backend's cloud deployment (Render blueprint)
+AGENTS.md, CLAUDE.md             Session 25: instructions for AI coding tools working in this repository
 ```
 
 ## Run it
