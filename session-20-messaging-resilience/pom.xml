@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Session 20: Messaging & Resilience. Four small Spring Boot services:
+       config-server         hands out the settings of the other services (Spring Cloud Config)
+       order-service         takes orders, asks shipping-service for the fee (circuit breaker + retry)
+                             and publishes an OrderPlaced event to Kafka
+       notification-service  reads OrderPlaced events from Kafka and writes the customer a message
+       shipping-service      the fee per city: the dependency that we switch off to see resilience work -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.github.niranjankagri</groupId>
+        <artifactId>java-backend-development</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>session-20-messaging-resilience</artifactId>
+    <name>Session 20: Messaging &amp; Resilience</name>
+
+    <properties>
+        <!-- the same Spring Cloud release train as Session 19 -->
+        <spring-cloud.version>2025.1.4</spring-cloud.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <!-- Topic 2: KafkaTemplate to publish events, @KafkaListener to consume them -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-kafka</artifactId>
+        </dependency>
+
+        <!-- Topic 3: the config server (one service), and the client part every other service uses -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-config-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- Topics 4 and 5: circuit breaker and retry from Resilience4j, used directly (no annotations),
+             so every step is visible in the code. The Spring Cloud starter brings them with tested versions. -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- A real Kafka broker in Docker for the messaging test (skipped when Docker isn't available) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Four services in one module (to keep the course simple), so four runnable jars, told apart
+                 by a classifier (as in Session 19). In a real project each service is its own project. -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <!-- switch off the parent's one-jar execution ("default"): it cannot choose a main class -->
+                    <execution>
+                        <id>default</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>config-jar</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>jbdl.session20.config.ConfigServerApplication</mainClass>
+                            <classifier>config</classifier>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>orders-jar</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>jbdl.session20.orders.OrderServiceApplication</mainClass>
+                            <classifier>orders</classifier>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>notifications-jar</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>jbdl.session20.notifications.NotificationServiceApplication</mainClass>
+                            <classifier>notifications</classifier>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>shipping-jar</id>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>jbdl.session20.shipping.ShippingServiceApplication</mainClass>
+                            <classifier>shipping</classifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
