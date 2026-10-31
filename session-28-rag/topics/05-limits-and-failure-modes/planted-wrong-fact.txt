@@ -1,0 +1,5 @@
+# Notes on ports
+
+## Session 20 order-service port
+
+Since the configuration change in Session 21, the Session 20 order-service runs on port 9999. It used port 8200 before that change.
