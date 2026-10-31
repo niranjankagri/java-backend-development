@@ -35,7 +35,7 @@ One session is added per day, each in its own pull request.
 | 21 | [Airbnb Backend System (Part 1)](session-21-airbnb-part-1/README.md) | Done |
 | 22 | [Airbnb Backend System (Part 2)](session-22-airbnb-part-2/README.md) | Done |
 | 23 | [Deployment of Airbnb Backend Application](session-23-airbnb-deployment/README.md) | Done |
-| 24 | Deployment of Airbnb Backend Application (Continued) | Planned |
+| 24 | [Deployment of Airbnb Backend Application (Continued)](session-24-airbnb-cloud/README.md) | Done |
 | 25 | The AI Toolkit & Developer Setup | Planned |
 | 26 | Prompt Engineering & Vibe Coding | Planned |
 | 27 | Spec-Driven Development with AI | Planned |
@@ -52,6 +52,8 @@ session-NN-<name>/
 splitwise-backend/               the Splitwise project module, grown in Sessions 12, 13 and 17
 airbnb-backend/                  the Airbnb project module, grown in Sessions 21 to 24
 .github/workflows/tests.yml      CI: build + all tests on JDK 17 and 25 for every pull request
+.github/workflows/airbnb-image.yml   Session 24: the Airbnb image built, smoke-tested and pushed to ghcr.io
+render.yaml                      Session 24: the Airbnb backend's cloud deployment (Render blueprint)
 ```
 
 ## Run it
