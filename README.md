@@ -21,7 +21,7 @@ One session is added per day, each in its own pull request.
 | 7 | [Maven Plugins](session-07-maven-plugins/README.md) | Done |
 | 8 | [Spring MVC Basics & REST API Implementation](session-08-spring-mvc-rest/README.md) | Done |
 | 9 | [Spring Boot Advanced Features](session-09-spring-boot-advanced/README.md) | Done |
-| 10 | Java Database Connectivity (JDBC) | Planned |
+| 10 | [Java Database Connectivity (JDBC)](session-10-jdbc/README.md) | Done |
 | 11 | Hibernate, Spring Data JPA | Planned |
 | 12 | Minor Project: Splitwise Backend (Part 1) | Planned |
 | 13 | Minor Project: Splitwise Backend (Continued) | Planned |

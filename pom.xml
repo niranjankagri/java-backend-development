@@ -23,6 +23,7 @@
         <module>session-07-maven-plugins</module>
         <module>session-08-spring-mvc-rest</module>
         <module>session-09-spring-boot-advanced</module>
+        <module>session-10-jdbc</module>
     </modules>
 
     <properties>
