@@ -23,7 +23,7 @@ One session is added per day, each in its own pull request.
 | 9 | [Spring Boot Advanced Features](session-09-spring-boot-advanced/README.md) | Done |
 | 10 | [Java Database Connectivity (JDBC)](session-10-jdbc/README.md) | Done |
 | 11 | [Hibernate, Spring Data JPA](session-11-jpa/README.md) | Done |
-| 12 | Minor Project: Splitwise Backend (Part 1) | Planned |
+| 12 | [Minor Project: Splitwise Backend (Part 1)](session-12-splitwise-part-1/README.md) | Done |
 | 13 | Minor Project: Splitwise Backend (Continued) | Planned |
 | 14 | Unit Testing with JUnit & Mockito | Planned |
 | 15 | Redis & Caching | Planned |
@@ -49,6 +49,7 @@ session-NN-<name>/
   README.md                      the session: topics, what you can do after it, how to run
   topics/NN-<topic>/README.md    one README per topic; topics with code explain it and link to it
   pom.xml, src/                  only for sessions with code (each is a Maven module)
+splitwise-backend/               the Splitwise project module, grown in Sessions 12, 13 and 17
 .github/workflows/tests.yml      CI: build + all tests on JDK 17 and 25 for every pull request
 ```
 
