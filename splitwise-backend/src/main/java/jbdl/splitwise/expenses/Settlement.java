@@ -6,7 +6,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import jbdl.splitwise.groups.ExpenseGroup;
@@ -17,6 +19,7 @@ import jbdl.splitwise.users.AppUser;
  * old expenses), so the history always explains every balance.
  */
 @Entity
+@Table(indexes = @Index(name = "idx_settlement_group", columnList = "group_id"))
 public class Settlement {
 
     @Id

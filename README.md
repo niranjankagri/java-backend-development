@@ -24,7 +24,7 @@ One session is added per day, each in its own pull request.
 | 10 | [Java Database Connectivity (JDBC)](session-10-jdbc/README.md) | Done |
 | 11 | [Hibernate, Spring Data JPA](session-11-jpa/README.md) | Done |
 | 12 | [Minor Project: Splitwise Backend (Part 1)](session-12-splitwise-part-1/README.md) | Done |
-| 13 | Minor Project: Splitwise Backend (Continued) | Planned |
+| 13 | [Minor Project: Splitwise Backend (Continued)](session-13-splitwise-part-2/README.md) | Done |
 | 14 | Unit Testing with JUnit & Mockito | Planned |
 | 15 | Redis & Caching | Planned |
 | 16 | Spring Security & Authentication | Planned |

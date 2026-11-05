@@ -6,12 +6,15 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import jbdl.splitwise.users.AppUser;
 
 /** How much of one expense one person owes: "Ravi's share of Dinner is 300.00". */
 @Entity
+@Table(indexes = @Index(name = "idx_share_user", columnList = "user_id"))
 public class ExpenseShare {
 
     @Id

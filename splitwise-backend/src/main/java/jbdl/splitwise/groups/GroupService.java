@@ -37,6 +37,28 @@ public class GroupService {
         return group; // no save() needed: the group is managed, the join-table row is written at commit
     }
 
+    /** Renames the group (the only group field that may change). */
+    @Transactional
+    public ExpenseGroup rename(long groupId, String newName) {
+        ExpenseGroup group = get(groupId);
+        group.rename(newName.trim());
+        return group;
+    }
+
+    /** Removes a member; the caller (MembershipService) has already checked their balance is zero. */
+    @Transactional
+    public ExpenseGroup removeMember(long groupId, long userId) {
+        ExpenseGroup group = get(groupId);
+        AppUser user = users.get(userId);
+        if (user.getId().equals(group.getCreatedBy().getId())) {
+            throw new BusinessRuleException("the creator can't leave the group");
+        }
+        if (!group.removeMember(user)) {
+            throw new BusinessRuleException(user.getName() + " is not a member of " + group.getName());
+        }
+        return group;
+    }
+
     @Transactional(readOnly = true)
     public ExpenseGroup get(long groupId) {
         ExpenseGroup group = groups.findById(groupId)

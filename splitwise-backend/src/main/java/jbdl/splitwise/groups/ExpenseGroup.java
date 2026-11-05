@@ -64,6 +64,14 @@ public class ExpenseGroup {
         return members.add(user);
     }
 
+    public boolean removeMember(AppUser user) {
+        return members.remove(user);
+    }
+
+    public void rename(String newName) {
+        this.name = newName;
+    }
+
     public boolean isMember(AppUser user) {
         return members.contains(user);
     }

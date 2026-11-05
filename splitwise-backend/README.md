@@ -5,7 +5,7 @@ A Splitwise-like expense-sharing backend, built across the course:
 | Session | Adds | README |
 |---|---|---|
 | 12 | Requirements, architecture, entities and schema; users and groups API | [Session 12](../session-12-splitwise-part-1/README.md) |
-| 13 | Expenses with equal / exact / percent splits, balances, settle-up | (next) |
+| 13 | Expenses with equal / exact / percent splits, balances, settle-up, rename/leave group | [Session 13](../session-13-splitwise-part-2/README.md) |
 | 17 | Unit tests with Mockito, Redis caching, Spring Security, validations, deployment | (later) |
 
 ```bash
