@@ -27,6 +27,7 @@
         <module>session-11-jpa</module>
         <!-- The Splitwise project: built in Sessions 12, 13 and 17 -->
         <module>splitwise-backend</module>
+        <module>session-14-junit-mockito</module>
     </modules>
 
     <properties>
