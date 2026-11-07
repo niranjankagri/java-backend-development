@@ -21,7 +21,8 @@ jobs:
   test:
     name: Build and unit tests (JDK ${{ matrix.java }})
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 20 minutes: from Session 15 on, tests also start Redis and PostgreSQL in Docker (Testcontainers)
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
