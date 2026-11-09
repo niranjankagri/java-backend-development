@@ -26,7 +26,7 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserView register(@Valid @RequestBody CreateUser request) {
-        return UserView.of(service.register(request.name(), request.email()));
+        return UserView.of(service.register(request.name(), request.email(), request.password()));
     }
 
     @GetMapping("/{id}")

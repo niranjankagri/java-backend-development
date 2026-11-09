@@ -5,6 +5,8 @@ import jbdl.splitwise.common.BusinessRuleException;
 import jbdl.splitwise.common.NotFoundException;
 import jbdl.splitwise.users.AppUser;
 import jbdl.splitwise.users.UserService;
+import jbdl.splitwise.expenses.BalanceCalculator;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +23,16 @@ public class GroupService {
     }
 
     @Transactional
-    public ExpenseGroup create(String name, long createdByUserId) {
-        AppUser creator = users.get(createdByUserId);
+    public ExpenseGroup create(String name, String creatorEmail) {
+        AppUser creator = users.byEmail(creatorEmail);
         return groups.save(new ExpenseGroup(name.trim(), creator));
     }
 
-    /** Adds a member; adding someone twice is refused, so the client learns about its mistake. */
+    /**
+     * Adds a member; adding someone twice is refused, so the client learns about its mistake.
+     * The cached balances of the group list the members, so they are evicted (Session 17).
+     */
+    @CacheEvict(value = BalanceCalculator.CACHE, key = "#groupId")
     @Transactional
     public ExpenseGroup addMember(long groupId, long userId) {
         ExpenseGroup group = get(groupId);
@@ -46,6 +52,7 @@ public class GroupService {
     }
 
     /** Removes a member; the caller (MembershipService) has already checked their balance is zero. */
+    @CacheEvict(value = BalanceCalculator.CACHE, key = "#groupId")
     @Transactional
     public ExpenseGroup removeMember(long groupId, long userId) {
         ExpenseGroup group = get(groupId);

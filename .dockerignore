@@ -1,0 +1,5 @@
+# Keep build output and local files out of Docker build contexts (Session 17)
+**/target
+.git
+.idea
+**/*.iml

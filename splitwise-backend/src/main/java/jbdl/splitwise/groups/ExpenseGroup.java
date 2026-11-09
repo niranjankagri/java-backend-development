@@ -11,6 +11,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import jbdl.splitwise.users.AppUser;
@@ -29,6 +30,14 @@ public class ExpenseGroup {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    /**
+     * Session 17, optimistic locking: Hibernate adds "AND version = ?" to every UPDATE and increases the
+     * number. If two people rename the same group at the same moment, the second UPDATE finds a newer
+     * version and fails (ObjectOptimisticLockingFailureException) instead of silently overwriting.
+     */
+    @Version
+    private long version;
 
     /** Who created the group (many groups can be created by one user). */
     @ManyToOne(optional = false)
