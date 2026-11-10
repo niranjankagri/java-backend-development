@@ -30,6 +30,7 @@
         <module>session-14-junit-mockito</module>
         <module>session-15-redis-caching</module>
         <module>session-16-spring-security</module>
+        <module>session-18-oauth2-github</module>
     </modules>
 
     <properties>
