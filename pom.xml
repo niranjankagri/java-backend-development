@@ -32,6 +32,7 @@
         <module>session-16-spring-security</module>
         <module>session-18-oauth2-github</module>
         <module>session-19-microservices</module>
+        <module>session-20-messaging-resilience</module>
     </modules>
 
     <properties>
