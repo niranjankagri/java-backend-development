@@ -30,7 +30,12 @@ class ParallelStreamsTest {
     @DisplayName("Parallel uses the common ForkJoinPool when the machine has more than one core")
     void parallelUsesCommonPool() {
         if (Runtime.getRuntime().availableProcessors() > 1) {
-            assertThat(ParallelStreams.threadsUsed(true)).anyMatch(name -> name.startsWith("ForkJoinPool.commonPool"));
+            // The calling thread also works on a parallel stream, and with tiny work items it can
+            // sometimes finish everything before a pool thread starts (seen once in CI on 2 cores).
+            // So run it a few times: at least one run must use the common pool.
+            boolean poolUsed = IntStream.range(0, 20).anyMatch(attempt -> ParallelStreams.threadsUsed(true).stream()
+                    .anyMatch(name -> name.startsWith("ForkJoinPool.commonPool")));
+            assertThat(poolUsed).as("a common pool thread took part in at least one of 20 runs").isTrue();
         }
         assertThat(IntStream.range(0, 10).parallel().isParallel()).isTrue();
     }
