@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import jbdl.airbnb.listings.ListingDtos.ListingRequest;
@@ -26,6 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * The listing API. The constraints on the search parameters (@Min, @Max ...) are checked by Spring
  * MVC before the method runs; a wrong value answers 400.
+ *
+ * Session 22: creating and changing need a login (SecurityConfig); the Principal is the logged-in user
+ * and its name is the email. Reading and searching stay open.
  */
 @RestController
 public class ListingController {
@@ -38,8 +42,8 @@ public class ListingController {
 
     @PostMapping("/api/listings")
     @ResponseStatus(HttpStatus.CREATED)
-    public ListingView create(@Valid @RequestBody ListingRequest request) {
-        return service.create(request);
+    public ListingView create(@Valid @RequestBody ListingRequest request, Principal principal) {
+        return service.create(principal.getName(), request);
     }
 
     @GetMapping("/api/listings/{id}")
@@ -48,15 +52,16 @@ public class ListingController {
     }
 
     @PutMapping("/api/listings/{id}")
-    public ListingView update(@PathVariable long id, @Valid @RequestBody ListingRequest request) {
-        return service.update(id, request);
+    public ListingView update(@PathVariable long id, @Valid @RequestBody ListingRequest request,
+                              Principal principal) {
+        return service.update(id, principal.getName(), request);
     }
 
-    /** Deactivates (never deletes): DELETE /api/listings/7?hostId=1 */
+    /** Deactivates (never deletes): DELETE /api/listings/7 (Session 21 still had ?hostId=1) */
     @DeleteMapping("/api/listings/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deactivate(@PathVariable long id, @RequestParam long hostId) {
-        service.deactivate(id, hostId);
+    public void deactivate(@PathVariable long id, Principal principal) {
+        service.deactivate(id, principal.getName());
     }
 
     @GetMapping("/api/users/{hostId}/listings")

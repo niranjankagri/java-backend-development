@@ -44,4 +44,6 @@ curl -X POST localhost:8080/api/listings -H 'Content-Type: application/json' -d 
 curl 'localhost:8080/api/listings/search?city=goa&guests=2&maxPrice=5000&sort=price'
 ```
 
-More calls and their real answers: [`airbnb-backend/README.md`](../airbnb-backend/README.md).
+These calls are the Session 21 version; since [Session 22](../session-22-airbnb-part-2/README.md)
+registration needs a password and changing a listing needs a login (no `hostId`). The current API:
+[`airbnb-backend/README.md`](../airbnb-backend/README.md).

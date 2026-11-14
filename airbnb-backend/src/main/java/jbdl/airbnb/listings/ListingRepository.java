@@ -1,11 +1,14 @@
 package jbdl.airbnb.listings;
 
+import jakarta.persistence.LockModeType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 /**
@@ -16,6 +19,15 @@ import org.springframework.data.jpa.repository.Query;
 public interface ListingRepository extends JpaRepository<Listing, Long> {
 
     List<Listing> findByHostIdOrderByIdAsc(long hostId);
+
+    /**
+     * Session 22: the listing, LOCKED until the transaction ends (SELECT ... FOR UPDATE). A second
+     * booking of the same listing waits here until the first one is committed, and then sees its
+     * booking. See BookingService.book and topic 2 of Session 22.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select l from Listing l where l.id = :id")
+    Optional<Listing> findByIdForUpdate(long id);
 
     /** Search without dates: active listings in a city that fit the guests and the budget. */
     @Query("""

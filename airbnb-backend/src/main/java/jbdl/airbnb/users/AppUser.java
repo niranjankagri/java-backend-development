@@ -23,16 +23,21 @@ public class AppUser {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(nullable = false, unique = true, length = 150) // one account per email address
+    @Column(nullable = false, unique = true, length = 150) // one account per email address; also the login name
     private String email;
+
+    // Session 22: the password, only as a BCrypt hash (never the password itself)
+    @Column(nullable = false, length = 100)
+    private String passwordHash;
 
     protected AppUser() {
         // for JPA
     }
 
-    public AppUser(String name, String email) {
+    public AppUser(String name, String email, String passwordHash) {
         this.name = name;
         this.email = email;
+        this.passwordHash = passwordHash;
     }
 
     public Long getId() {
@@ -45,5 +50,9 @@ public class AppUser {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
     }
 }
