@@ -3,6 +3,7 @@ package jbdl.airbnb.common;
 import java.util.Map;
 import java.util.TreeMap;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -37,6 +38,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ForbiddenException.class)
     public ProblemDetail forbidden(ForbiddenException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    /**
+     * Session 23: the DATABASE refused a write (a unique key, a check or the exclusion constraint against
+     * overlapping bookings). The code checks these rules first, so this is the second line of defence:
+     * answer 409 instead of 500, without passing the database's message (table and column names) on.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail dataConflict(DataIntegrityViolationException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "the request conflicts with existing data");
     }
 
     /** Rules checked in our own code, e.g. "checkOut must be after checkIn" (DateRange). */

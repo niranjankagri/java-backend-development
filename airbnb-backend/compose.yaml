@@ -1,0 +1,38 @@
+# Session 23: the Airbnb backend and its PostgreSQL on one machine.
+#   cd airbnb-backend
+#   DATABASE_PASSWORD=choose-one docker compose up --build
+# The password comes from your shell's environment (or a .env file next to this file, never committed).
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: airbnb
+      POSTGRES_USER: airbnb
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD}
+    volumes:
+      # the data survives container restarts and `docker compose down` (not `down -v`).
+      # PostgreSQL 18 images keep their data below /var/lib/postgresql (older ones: .../data)
+      - airbnb-db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airbnb -d airbnb"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build:
+      context: ..                       # the repository root (parent pom, Maven wrapper)
+      dockerfile: airbnb-backend/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/airbnb   # the service name is the host name
+      DATABASE_USER: airbnb
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?set DATABASE_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy      # start only when PostgreSQL accepts connections
+    restart: unless-stopped             # start again after a crash or a reboot
+    stop_grace_period: 30s              # time for the graceful shutdown (20 s) before Docker kills it
+
+volumes:
+  airbnb-db:

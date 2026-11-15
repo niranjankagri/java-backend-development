@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/listings/*/bookings").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/listings/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/*/listings").permitAll()
+                        // Session 23: the container platform asks these without a login
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**").permitAll()
                         .anyRequest().authenticated())
                 // HTTP Basic: email and password with every request (always over HTTPS in production)
                 .httpBasic(Customizer.withDefaults())
