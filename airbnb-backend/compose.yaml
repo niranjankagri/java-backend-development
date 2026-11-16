@@ -19,6 +19,7 @@ services:
       retries: 10
 
   app:
+    image: airbnb-backend:local         # the name of the image compose builds (CI pushes this one, Session 24)
     build:
       context: ..                       # the repository root (parent pom, Maven wrapper)
       dockerfile: airbnb-backend/Dockerfile

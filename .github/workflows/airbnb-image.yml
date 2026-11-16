@@ -1,0 +1,75 @@
+# Session 24: the delivery pipeline of the Airbnb backend (the tests themselves run in tests.yml).
+#   1. build the container image from airbnb-backend/Dockerfile
+#   2. start it with PostgreSQL (airbnb-backend/compose.yaml) and run the smoke test against it
+#   3. on main only, after 1 and 2 passed: push the tested image to GitHub Container Registry,
+#      tagged with the commit (sha-1a2b3c4) and as latest
+# A pull request runs 1 and 2, so a broken image never reaches main.
+name: Airbnb image
+
+on:
+  push:
+    branches: [main]
+    paths: ['airbnb-backend/**', 'pom.xml', '.github/workflows/airbnb-image.yml']
+  pull_request:
+    branches: [main]
+    paths: ['airbnb-backend/**', 'pom.xml', '.github/workflows/airbnb-image.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: airbnb-image-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    name: Build, smoke-test and publish the image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write          # push to ghcr.io with the job's own GITHUB_TOKEN (no extra secret)
+    env:
+      IMAGE: ghcr.io/${{ github.repository_owner }}/airbnb-backend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the app and PostgreSQL (compose builds the image)
+        working-directory: airbnb-backend
+        run: |
+          # a fresh random password per run (the database lives only as long as this job), hidden in the
+          # log (add-mask) and kept for the later steps, which need it too (GITHUB_ENV)
+          DATABASE_PASSWORD="$(openssl rand -hex 16)"
+          echo "::add-mask::$DATABASE_PASSWORD"
+          echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$GITHUB_ENV"
+          export DATABASE_PASSWORD
+          docker compose up --build --detach
+
+      - name: Smoke test against the running container
+        run: airbnb-backend/scripts/smoke-test.sh http://localhost:8080
+
+      - name: Show the container logs (on failure)
+        if: failure()
+        working-directory: airbnb-backend
+        run: docker compose logs app
+
+      - name: Stop the stack
+        if: always()
+        working-directory: airbnb-backend
+        run: docker compose down --volumes
+
+      # The image that passed the smoke test is pushed as it is: no second build that could differ.
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Push the tested image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          TAG="sha-${GITHUB_SHA::7}"
+          docker tag airbnb-backend:local "$IMAGE:$TAG"
+          docker tag airbnb-backend:local "$IMAGE:latest"
+          docker push "$IMAGE:$TAG"
+          docker push "$IMAGE:latest"
+          echo "Pushed $IMAGE:$TAG and $IMAGE:latest" >> "$GITHUB_STEP_SUMMARY"

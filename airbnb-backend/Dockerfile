@@ -18,6 +18,9 @@ RUN java -Djarmode=tools -jar airbnb-backend/target/airbnb-backend-1.0.0-SNAPSHO
 
 # ---- stage 2: only a Java runtime and the layers ----
 FROM eclipse-temurin:21-jre
+# Session 24: where the image comes from; GitHub Container Registry links the package to this repository
+LABEL org.opencontainers.image.source="https://github.com/niranjankagri/java-backend-development" \
+      org.opencontainers.image.description="Airbnb-like rental backend (course Sessions 21 to 24)"
 WORKDIR /app
 # never run as root inside the container
 RUN useradd --system --uid 10001 airbnb

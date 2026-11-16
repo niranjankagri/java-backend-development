@@ -7,7 +7,7 @@ An Airbnb-like rental backend in Spring Boot 4, built over Sessions 21 to 24 of 
 | [21](../session-21-airbnb-part-1/README.md) | requirements, architecture, entities and schema; users; listings; search with availability |
 | [22](../session-22-airbnb-part-2/README.md) | bookings without double bookings, login, reviews, events |
 | [23](../session-23-airbnb-deployment/README.md) | PostgreSQL with Flyway, a database guard against double bookings, container image, Docker Compose, health and graceful shutdown |
-| 24 | deployment to the cloud |
+| [24](../session-24-airbnb-cloud/README.md) | delivery pipeline with smoke test, image on ghcr.io, Render blueprint, safe releases, JSON logs |
 
 ## API
 
@@ -40,7 +40,7 @@ database refuses a write, Session 23).
 ## Run it
 
 ```bash
-./mvnw -pl airbnb-backend verify                                     # 50 tests (ProdProfileTest needs Docker)
+./mvnw -pl airbnb-backend verify                                     # 51 tests (ProdProfileTest, CloudSettingsTest need Docker)
 java -jar airbnb-backend/target/airbnb-backend-1.0.0-SNAPSHOT.jar    # http://localhost:8080, H2 in memory
 ```
 
@@ -50,17 +50,21 @@ With PostgreSQL, as in production (Session 23):
 cd airbnb-backend
 DATABASE_PASSWORD=choose-one docker compose up --build              # app + PostgreSQL 18
 curl localhost:8080/actuator/health
+scripts/smoke-test.sh http://localhost:8080                          # Session 24: the main path, from outside
 ```
 
 | Profile | Database | Schema |
 |---|---|---|
 | (none) | H2 in memory, gone when the application stops | Hibernate creates it |
-| `prod` (set by the image) | PostgreSQL from `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD` | Flyway migrations (`src/main/resources/db/migration`); Hibernate validates |
+| `prod` (set by the image) | PostgreSQL from `DATABASE_URL`, or `DATABASE_HOST` + `DATABASE_PORT` + `DATABASE_NAME` (Render); `DATABASE_USER`, `DATABASE_PASSWORD` | Flyway migrations (`src/main/resources/db/migration`); Hibernate validates |
+
+In the cloud: [`render.yaml`](../render.yaml) and [Session 24](../session-24-airbnb-cloud/README.md).
 
 ## Layout
 
 ```
 Dockerfile, compose.yaml                      the image and the local production-like stack (Session 23)
+scripts/smoke-test.sh                         checks a running deployment through its API (Session 24)
 src/main/resources/db/migration/              Flyway migrations V1 (schema), V2 (no overlapping bookings)
 src/main/java/jbdl/airbnb/
   AirbnbApplication.java
@@ -75,5 +79,6 @@ src/test/java/jbdl/airbnb/
   DateRangeTest, SchemaDesignTest, UserAndListingApiTest, ListingSearchTest          (Session 21)
   BookingApiTest, DoubleBookingTest, SecurityRulesTest, ReviewApiTest, BookingEventsTest   (Session 22)
   ProdProfileTest: the prod profile on PostgreSQL 18 in Docker                          (Session 23)
+  CloudSettingsTest: the prod profile with Render-style database settings              (Session 24)
   ApiTestSupport
 ```
