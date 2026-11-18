@@ -37,7 +37,7 @@ One session is added per day, each in its own pull request.
 | 23 | [Deployment of Airbnb Backend Application](session-23-airbnb-deployment/README.md) | Done |
 | 24 | [Deployment of Airbnb Backend Application (Continued)](session-24-airbnb-cloud/README.md) | Done |
 | 25 | [The AI Toolkit & Developer Setup](session-25-ai-toolkit/README.md) | Done |
-| 26 | Prompt Engineering & Vibe Coding | Planned |
+| 26 | [Prompt Engineering & Vibe Coding](session-26-prompt-engineering/README.md) | Done |
 | 27 | Spec-Driven Development with AI | Planned |
 | 28 | RAG Systems & Context-Aware AI | Planned |
 

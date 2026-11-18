@@ -1,0 +1,2 @@
+Task:
+In the GitHub repository niranjankagri/java-backend-development, Session 20 has an order-service. On which port does it run, and which Docker image does its Kafka end-to-end test start?

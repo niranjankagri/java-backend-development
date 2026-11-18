@@ -36,6 +36,7 @@
         <!-- The Airbnb project: built in Sessions 21 to 24 -->
         <module>airbnb-backend</module>
         <module>session-25-ai-toolkit</module>
+        <module>session-26-prompt-engineering</module>
     </modules>
 
     <properties>
