@@ -39,7 +39,7 @@ One session is added per day, each in its own pull request.
 | 25 | [The AI Toolkit & Developer Setup](session-25-ai-toolkit/README.md) | Done |
 | 26 | [Prompt Engineering & Vibe Coding](session-26-prompt-engineering/README.md) | Done |
 | 27 | [Spec-Driven Development with AI](session-27-spec-driven-development/README.md) | Done |
-| 28 | RAG Systems & Context-Aware AI | Planned |
+| 28 | [RAG Systems & Context-Aware AI](session-28-rag/README.md) | Done |
 
 ## Layout
 
