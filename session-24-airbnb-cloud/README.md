@@ -25,9 +25,9 @@ managed PostgreSQL and HTTPS; releases without downtime and with a way back; log
 - 51 tests in the module (new: [`CloudSettingsTest`](../airbnb-backend/src/test/java/jbdl/airbnb/CloudSettingsTest.java)).
 
 **Verified locally:** the workflows with actionlint, the pipeline's compose + smoke-test steps, the JSON
-logs, and the Render-style configuration against PostgreSQL 18. **Not yet:** the first pipeline run on
-GitHub, the first image on GHCR, and the live Render deployment; they need this session on `main`
-(topic 3 lists the steps).
+logs, and the Render-style configuration against PostgreSQL 18. **Since then:** the pipeline ran on GitHub
+and publishes the image to GHCR, and the backend is **live on Render** at https://airbnb-backend-u7lv.onrender.com (22 Nov 2026;
+`smoke-test.sh` passed against it; topic 3).
 
 ## What you can do after this session
 

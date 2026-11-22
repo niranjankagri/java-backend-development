@@ -81,9 +81,11 @@ Good for a demonstration, not for real users.
    `airbnb-backend/scripts/smoke-test.sh https://<service-name>.onrender.com`
 3. From then on every green commit on `main` that touches the app deploys by itself.
 
-**Status:** the blueprint and the Render-style configuration are verified locally (the settings test and
-the image); a live deployment needs this session on `main` and the steps above, so there is no public
-address yet.
+**Status:** live since 22 Nov 2026 at **https://airbnb-backend-u7lv.onrender.com**, created from this blueprint (free plan,
+Frankfurt). `smoke-test.sh` passed against it the same day: ready, register a host and a guest, create a listing,
+find it in search, book it, the same nights again refused with 409, listing deactivated. Health:
+`https://airbnb-backend-u7lv.onrender.com/actuator/health/readiness`. The free service sleeps after 15 minutes without
+requests, so the first request afterwards takes about a minute.
 
 ## Interview questions
 
