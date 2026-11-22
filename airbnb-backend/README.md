@@ -2,6 +2,9 @@
 
 An Airbnb-like rental backend in Spring Boot 4, built over Sessions 21 to 24 of the course:
 
+**Live:** https://airbnb-backend-u7lv.onrender.com (Render free plan: it sleeps when idle, so the first request can take about a minute).
+Register with `POST /api/users`, then use that email and password as HTTP Basic login (see API below).
+
 | Session | Adds |
 |---|---|
 | [21](../session-21-airbnb-part-1/README.md) | requirements, architecture, entities and schema; users; listings; search with availability |
