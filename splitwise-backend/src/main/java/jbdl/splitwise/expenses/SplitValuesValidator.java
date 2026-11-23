@@ -22,10 +22,16 @@ public class SplitValuesValidator implements ConstraintValidator<ValidSplitValue
                 return fail(context, "an EQUAL split takes no values");
             }
             if (request.splitType() != SplitType.EQUAL && (!hasValue || participant.value().signum() <= 0)) {
-                return fail(context, "a " + request.splitType() + " split needs a positive value for every participant");
+                return fail(context, article(request.splitType().name()) + " " + request.splitType()
+                        + " split needs a positive value for every participant");
             }
         }
         return true;
+    }
+
+    /** "an EXACT", "a PERCENT": the article by the first letter. */
+    private static String article(String word) {
+        return "AEIOU".indexOf(word.charAt(0)) >= 0 ? "an" : "a";
     }
 
     /** Replaces the default message with a specific one, reported on the "participants" field. */

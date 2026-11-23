@@ -1,6 +1,7 @@
 package jbdl.session20.shipping;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +20,7 @@ public class ShippingController {
 
     @GetMapping("/rates/{city}")
     public ShippingRate rate(@PathVariable String city) {
-        BigDecimal fee = FEES.getOrDefault(city.toLowerCase(), OTHER_CITIES);
+        BigDecimal fee = FEES.getOrDefault(city.toLowerCase(Locale.ROOT), OTHER_CITIES);
         return new ShippingRate(city, fee);
     }
 

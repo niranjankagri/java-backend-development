@@ -49,10 +49,19 @@ class OrderReportsTest {
     }
 
     @Test
-    @DisplayName("flatMap over line items: pens sold most (10 + 45 + 30)")
+    @DisplayName("flatMap over line items: pens sold most (10 + 30; the cancelled 45 do not count)")
     void flatMap() {
         assertThat(OrderReports.bestSellingProduct(ORDERS)).contains("pen");
         assertThat(OrderReports.bestSellingProduct(List.of())).isEmpty();
+    }
+
+    @Test
+    @DisplayName("A cancelled order's items are not sold: they cannot make a product the best seller")
+    void cancelledItemsDoNotCount() {
+        List<Order> orders = List.of(
+                new Order(1, "Asha", "Pune", Order.Status.DELIVERED, List.of(new Order.Item("pen", 5, 20))),
+                new Order(2, "Ravi", "Delhi", Order.Status.CANCELLED, List.of(new Order.Item("stapler", 50, 90))));
+        assertThat(OrderReports.bestSellingProduct(orders)).contains("pen");
     }
 
     @Test

@@ -52,10 +52,14 @@ public class BookService {
 
     /** PUT semantics: replace the whole resource. */
     public Book replace(long id, BookRequest request) {
-        findById(id);
-        Book book = toBook(id, request);
-        books.put(id, book);
-        return book;
+        // One atomic step, as in changePrice: a check "does it exist?" followed by a separate put would let
+        // a DELETE in between, and the put would bring the deleted book back.
+        return books.compute(id, (key, existing) -> {
+            if (existing == null) {
+                throw new BookNotFoundException(id);
+            }
+            return toBook(id, request);
+        });
     }
 
     /** PATCH semantics: change only the given field. */

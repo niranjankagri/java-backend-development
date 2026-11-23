@@ -15,7 +15,7 @@ public final class UserDtos {
 
     /** POST /api/users body. */
     public record CreateUser(@NotBlank @Size(max = 100) String name, @NotBlank @Email String email,
-                             @NotBlank @Size(min = 12, max = 100) String password) {
+                             @NotBlank @Size(min = 12, max = 72) String password) {
     }
 
     /** A user in responses. */

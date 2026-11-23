@@ -1,5 +1,6 @@
 package jbdl.airbnb.users;
 
+import java.util.Locale;
 import jbdl.airbnb.common.BusinessRuleException;
 import jbdl.airbnb.common.NotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,7 +22,7 @@ public class UserService {
     @Transactional
     public AppUser register(String name, String email, String password) {
         // "Asha@Example.com" and "asha@example.com" must be the same account
-        String normalisedEmail = email.trim().toLowerCase();
+        String normalisedEmail = email.trim().toLowerCase(Locale.ROOT);
         if (users.existsByEmail(normalisedEmail)) {
             throw new BusinessRuleException("email " + normalisedEmail + " is already registered");
         }

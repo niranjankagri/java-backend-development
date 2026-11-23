@@ -78,6 +78,14 @@ class AuthorizationTest {
     }
 
     @Test
+    @DisplayName("Disabling a user who does not exist: 404, not 500")
+    void disableUnknownUser() throws Exception {
+        mvc.perform(post("/api/admin/users/nobody-here/disable").with(httpBasic("admin", "admin-pass-123")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.detail").value("no user nobody-here"));
+    }
+
+    @Test
     @WithMockUser(username = "ravi", roles = "USER")
     @DisplayName("@PreAuthorize protects the SERVICE too, even when called without any HTTP request")
     void methodSecurityWithoutHttp() {

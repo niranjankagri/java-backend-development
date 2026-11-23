@@ -2,6 +2,7 @@ package jbdl.session16.users;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -42,6 +43,8 @@ public class AccountService {
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void disable(String username) {
-        accounts.findByUsername(username).orElseThrow().disable();
+        accounts.findByUsername(username)
+                .orElseThrow(() -> new NoSuchElementException("no user " + username))
+                .disable();
     }
 }

@@ -1,6 +1,7 @@
 package jbdl.session15.web;
 
 import java.time.Duration;
+import java.util.Locale;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class PreferenceController {
     /** Remember the user's currency for 30 days. */
     @PutMapping("/currency/{currency}")
     public ResponseEntity<String> choose(@PathVariable String currency) {
-        ResponseCookie cookie = ResponseCookie.from(COOKIE, currency.toUpperCase())
+        ResponseCookie cookie = ResponseCookie.from(COOKIE, currency.toUpperCase(Locale.ROOT))
                 .httpOnly(true)              // JavaScript in the page can't read it (protects against XSS theft)
                 .sameSite("Lax")             // not sent with most cross-site requests (protects against CSRF)
                 .path("/")

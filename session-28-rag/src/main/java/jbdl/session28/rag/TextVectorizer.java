@@ -3,6 +3,7 @@ package jbdl.session28.rag;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -98,7 +99,7 @@ public final class TextVectorizer {
     /** The words of a text: lowercase letters and digits, without stop words and single letters. */
     static List<String> words(String text, boolean stemming) {
         List<String> words = new ArrayList<>();
-        for (String word : text.toLowerCase().split("[^a-z0-9]+")) {
+        for (String word : text.toLowerCase(Locale.ROOT).split("[^a-z0-9]+")) {
             if (word.length() > 1 && !STOP_WORDS.contains(word)) {
                 words.add(stemming ? stem(word) : word);
             }

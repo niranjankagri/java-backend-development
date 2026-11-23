@@ -145,11 +145,14 @@ class ExpenseFlowApiTest {
                 .andExpect(jsonPath("$.errors.participants").value("an EQUAL split takes no values"));
         expense("Tea", "60.00", asha, "EXACT", "[{\"userId\": " + asha.id() + "}]")
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors.participants").value("a EXACT split needs a positive value for every participant"));
+                .andExpect(jsonPath("$.errors.participants").value("an EXACT split needs a positive value for every participant"));
+        expense("Tea", "60.00", asha, "PERCENT", "[{\"userId\": " + asha.id() + "}]")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.participants").value("a PERCENT split needs a positive value for every participant"));
     }
 
     @Test
-    @DisplayName("Group management: rename; leaving needs a zero balance; the creator can't leave")
+    @DisplayName("Group management: rename; leaving needs a zero balance, only for yourself; the creator can't leave")
     void groupManagement() throws Exception {
         mvc.perform(patch("/api/groups/" + goa).with(as(asha)).contentType(MediaType.APPLICATION_JSON).content("{\"name\": \"Goa 2026\"}"))
                 .andExpect(jsonPath("$.name").value("Goa 2026"));
@@ -159,6 +162,9 @@ class ExpenseFlowApiTest {
                 .andExpect(jsonPath("$.detail").value("settle the balance of -1800.00 before leaving the group"));
 
         settle(ravi, asha, "1700.00");
+        // Ravi's balance is now zero, but only Ravi himself may take him out of the group
+        mvc.perform(delete("/api/groups/" + goa + "/members/" + ravi.id()).with(as(asha)))
+                .andExpect(status().isForbidden());
         mvc.perform(delete("/api/groups/" + goa + "/members/" + ravi.id()).with(as(ravi)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.members", hasSize(2)));

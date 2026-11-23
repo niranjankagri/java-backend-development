@@ -1,5 +1,6 @@
 package jbdl.airbnb.security;
 
+import java.util.Locale;
 import jbdl.airbnb.users.AppUser;
 import jbdl.airbnb.users.AppUserRepository;
 import org.springframework.security.core.userdetails.User;
@@ -23,7 +24,7 @@ public class EmailUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) {
-        AppUser user = users.findByEmail(email.trim().toLowerCase())
+        AppUser user = users.findByEmail(email.trim().toLowerCase(Locale.ROOT))
                 .orElseThrow(() -> new UsernameNotFoundException("no account for " + email));
         return User.withUsername(user.getEmail())
                 .password(user.getPasswordHash())

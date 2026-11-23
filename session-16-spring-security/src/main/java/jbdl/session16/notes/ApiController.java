@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import jbdl.session16.users.AccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -102,6 +103,12 @@ public class ApiController {
     public String disable(@PathVariable String username) {
         accounts.disable(username);
         return username + " disabled";
+    }
+
+    /** An unknown username (e.g. disabling a user who does not exist): 404, not 500. */
+    @ExceptionHandler(NoSuchElementException.class)
+    public ProblemDetail notFound(NoSuchElementException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(IllegalStateException.class)
