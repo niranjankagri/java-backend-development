@@ -4,8 +4,9 @@ package jbdl.session26.prompt;
  * The three prompts of the hallucination experiment (topic 5). The question is about this course's
  * own code, which the model cannot know: Session 20 was not even on GitHub when it was asked.
  *
- * <p>The true answers: port 8200 (application-orders.properties) and the image
- * apache/kafka-native:4.1.1 (MessagingEndToEndTest).
+ * <p>The true answers at the time of the experiment: port 8200 (application-orders.properties) and the
+ * image apache/kafka-native:4.1.1 (MessagingEndToEndTest). The prompts are kept as they were asked; since
+ * 23 Nov 2026 the test starts the JVM image apache/kafka:4.1.1 instead (see the comment there).
  */
 public final class HallucinationPrompts {
 

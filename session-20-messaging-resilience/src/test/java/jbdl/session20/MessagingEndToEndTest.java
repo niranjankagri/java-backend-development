@@ -36,8 +36,11 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers(disabledWithoutDocker = true)
 class MessagingEndToEndTest {
 
+    // The JVM image of Kafka 4.1.1. The native image (apache/kafka-native:4.1.1, used until 23 Nov 2026)
+    // starts faster, but its native setup tool crashed now and then on the CI runners (a segfault in
+    // getpwuid), so the test failed before any of our code ran. Same broker, same version.
     @Container
-    static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka-native:4.1.1"));
+    static final KafkaContainer KAFKA = new KafkaContainer(DockerImageName.parse("apache/kafka:4.1.1"));
 
     private final List<ConfigurableApplicationContext> running = new ArrayList<>();
     private ConfigurableApplicationContext shipping;
