@@ -89,7 +89,9 @@ DefaultErrorHandler errorHandler(KafkaTemplate<Object, Object> template) {
 
 ## Run it
 
-Kafka in Docker (KRaft mode, no ZooKeeper; the same image the tests use):
+Kafka in Docker (KRaft mode, no ZooKeeper). By hand the small native image is fine; the end-to-end test
+uses the JVM image `apache/kafka:4.1.1` (same broker and version), because the native image's setup tool
+crashed now and then on the CI runners (since 23 Nov 2026):
 
 ```bash
 docker run -d --name kafka -p 9092:9092 apache/kafka-native:4.1.1
