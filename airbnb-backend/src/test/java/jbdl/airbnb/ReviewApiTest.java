@@ -59,10 +59,10 @@ class ReviewApiTest extends ApiTestSupport {
     }
 
     @Test
-    @DisplayName("Two reviews after two stays: average 4.5 (one decimal), newest first, open to everyone")
+    @DisplayName("Two reviews after two stays: average 4.5 (one decimal), newest first, open to everyone, first names only")
     void reviewsAndAverage() throws Exception {
         long first = stay(ravi, 20, 18).getId();
-        TestUser meera = registerUser("Meera");
+        TestUser meera = registerUser("Meera Nair");
         long second = stay(meera, 10, 7).getId();
 
         review(ravi, first, 5, "Lovely view").andExpect(status().isCreated())
@@ -74,7 +74,8 @@ class ReviewApiTest extends ApiTestSupport {
                 .andExpect(jsonPath("$.averageRating").value(4.5))
                 .andExpect(jsonPath("$.reviewCount").value(2))
                 .andExpect(jsonPath("$.reviews", hasSize(2)))
-                .andExpect(jsonPath("$.reviews[0].comment").value("Noisy at night"));
+                .andExpect(jsonPath("$.reviews[0].comment").value("Noisy at night"))
+                .andExpect(jsonPath("$.reviews[0].guestName").value("Meera"));
     }
 
     @Test

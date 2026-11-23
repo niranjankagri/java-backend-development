@@ -11,20 +11,22 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Keeps the local member records in step with GitHub logins.
  *
- * Who is an admin? The GitHub logins listed in the setting app.admin-logins (comma separated). Anyone
- * else who logs in becomes a USER. There is no registration step: logging in with GitHub IS the
+ * Who is an admin? The GitHub accounts whose numeric ids are listed in the setting app.admin-github-ids
+ * (comma separated). Not the logins: a login can be renamed, and the freed name taken by someone else, who
+ * would then be an admin. The id never changes. Anyone else who logs in becomes a USER. There is no registration step: logging in with GitHub IS the
  * registration.
  */
 @Service
 public class MemberService {
 
     private final MemberRepository members;
-    private final Set<String> adminLogins;
+    private final Set<Long> adminGithubIds;
     private final Clock clock;
 
-    public MemberService(MemberRepository members, @Value("${app.admin-logins:}") Set<String> adminLogins, Clock clock) {
+    public MemberService(MemberRepository members, @Value("${app.admin-github-ids:}") Set<Long> adminGithubIds,
+            Clock clock) {
         this.members = members;
-        this.adminLogins = adminLogins;
+        this.adminGithubIds = adminGithubIds;
         this.clock = clock;
     }
 
@@ -40,7 +42,7 @@ public class MemberService {
             member = new Member(githubId, login);
         }
         member.loggedIn(login, name, avatarUrl, Instant.now(clock));
-        member.setRole(adminLogins.contains(login) ? Role.ADMIN : Role.USER);
+        member.setRole(adminGithubIds.contains(githubId) ? Role.ADMIN : Role.USER);
         return members.save(member);
     }
 

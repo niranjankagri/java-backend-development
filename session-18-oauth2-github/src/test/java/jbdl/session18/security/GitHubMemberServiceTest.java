@@ -29,7 +29,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
  * ready-made profile instead, so the test runs without GitHub but goes through the real
  * GitHubMemberService, MemberService and database.
  */
-@SpringBootTest(properties = "app.admin-logins=octo-admin")
+@SpringBootTest(properties = "app.admin-github-ids=3003")
 class GitHubMemberServiceTest {
 
     @Autowired
@@ -90,12 +90,23 @@ class GitHubMemberServiceTest {
     }
 
     @Test
-    @DisplayName("A login listed in app.admin-logins gets ROLE_ADMIN")
+    @DisplayName("A GitHub id listed in app.admin-github-ids gets ROLE_ADMIN")
     void adminLogin() {
         OAuth2User user = new GitHubMemberService(request -> gitHubProfile(3003, "octo-admin", "Admin"), memberService)
                 .loadUser(loginRequest());
 
         assertThat(user.getAuthorities()).extracting(GrantedAuthority::getAuthority).contains("ROLE_ADMIN");
         assertThat(members.findByGithubId(3003L).orElseThrow().getRole()).isEqualTo(Role.ADMIN);
+    }
+
+    @Test
+    @DisplayName("Someone who takes over an admin's old login is not an admin (the id decides, not the login)")
+    void takenOverLogin() {
+        // the admin (id 3003) renamed their account; a different person (id 4004) now uses the old login
+        OAuth2User user = new GitHubMemberService(request -> gitHubProfile(4004, "octo-admin", "Someone else"), memberService)
+                .loadUser(loginRequest());
+
+        assertThat(user.getAuthorities()).extracting(GrantedAuthority::getAuthority).doesNotContain("ROLE_ADMIN");
+        assertThat(members.findByGithubId(4004L).orElseThrow().getRole()).isEqualTo(Role.USER);
     }
 }
