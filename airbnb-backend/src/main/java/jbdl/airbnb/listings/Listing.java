@@ -10,7 +10,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -25,8 +24,10 @@ import jbdl.airbnb.users.AppUser;
  * old bookings point to them and must keep making sense (topic 3).
  */
 @Entity
-// search always filters by city: an index lets the database find a city's listings without reading all rows
-@Table(name = "listing", indexes = @Index(name = "idx_listing_city", columnList = "city"))
+// Search always filters by lower(city), so the index is on lower(city): an expression index, which JPA's
+// @Index cannot describe. It lives in the Flyway migration V3 (PostgreSQL, the prod profile); the
+// in-memory development database needs no index.
+@Table(name = "listing")
 public class Listing {
 
     @Id

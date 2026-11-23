@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.testcontainers.junit.jupiter.Container;
@@ -58,14 +61,36 @@ class ProdProfileTest extends ApiTestSupport {
     private BookingService bookingService;
 
     @Test
-    @DisplayName("Flyway ran both migrations on PostgreSQL, and Hibernate's validation passed")
+    @DisplayName("Flyway ran all three migrations on PostgreSQL, and Hibernate's validation passed")
     void migrations() {
         List<String> applied = jdbc.queryForList(
                 "select version || ' ' || description from flyway_schema_history where success order by installed_rank",
                 String.class);
 
-        assertThat(applied).containsExactly("1 create schema", "2 no overlapping bookings");
+        assertThat(applied).containsExactly("1 create schema", "2 no overlapping bookings", "3 index lower city");
         assertThat(jdbc.queryForObject("select version()", String.class)).startsWith("PostgreSQL 18");
+    }
+
+    @Test
+    @DisplayName("The city search can use the index on lower(city)")
+    void citySearchUsesTheIndex() {
+        // With a handful of rows PostgreSQL would rightly read the whole table anyway, so sequential scans
+        // are switched off for this one check: the question is whether the index CAN serve the query.
+        String plan = jdbc.execute((ConnectionCallback<String>) connection -> {
+            try (Statement statement = connection.createStatement()) {
+                statement.execute("set enable_seqscan = off");
+                StringBuilder lines = new StringBuilder();
+                try (ResultSet rows = statement.executeQuery(
+                        "explain select * from listing where lower(city) = lower('Goa')")) {
+                    while (rows.next()) {
+                        lines.append(rows.getString(1)).append('\n');
+                    }
+                }
+                statement.execute("reset enable_seqscan");
+                return lines.toString();
+            }
+        });
+        assertThat(plan).contains("idx_listing_lower_city");
     }
 
     @Test
