@@ -18,6 +18,7 @@ import jbdl.splitwise.groups.GroupService;
 import jbdl.splitwise.users.AppUser;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -50,7 +51,7 @@ public class ExpenseService {
     @CacheEvict(value = BalanceCalculator.CACHE, key = "#groupId")
     @Transactional
     public ExpenseView addExpense(long groupId, AddExpense request) {
-        ExpenseGroup group = groups.get(groupId);
+        ExpenseGroup group = groups.getLocked(groupId); // waits for a settlement being checked in this group
         AppUser payer = member(group, request.paidByUserId());
 
         List<Long> participantIds = new ArrayList<>();
@@ -109,6 +110,16 @@ public class ExpenseService {
         return views;
     }
 
+    /**
+     * Every member's balance, computed fresh, with the group's row locked until the caller's transaction
+     * ends: for a check that is followed by a write (leaving the group).
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Map<Long, BigDecimal> lockedBalanceAmounts(long groupId) {
+        groups.getLocked(groupId);
+        return calculator.current(groupId);
+    }
+
     /** The fewest payments that bring every balance back to zero. */
     @Transactional(readOnly = true)
     public List<PaymentView> settleUpPlan(long groupId) {
@@ -131,19 +142,23 @@ public class ExpenseService {
      * Records "from paid to". Refused when it would not reduce a real debt: the payer must owe at least
      * that much and the receiver must be owed at least that much (no overpaying, no paying yourself).
      *
+     * Two settlements at the same moment could both pass the check against the same old balance, and
+     * together overpay. So the group's row is locked first (a second request waits here until the first
+     * commits), and the balance is computed fresh, not from the cache.
+     *
      * Returns nothing on purpose: the cached balances are evicted AFTER this method returns, so balances
      * computed inside it would be the old cached ones. The controller asks for fresh balances afterwards.
      */
     @CacheEvict(value = BalanceCalculator.CACHE, key = "#groupId")
     @Transactional
     public void recordSettlement(long groupId, long fromUserId, long toUserId, BigDecimal amount) {
-        ExpenseGroup group = groups.get(groupId);
+        ExpenseGroup group = groups.getLocked(groupId);
         AppUser from = member(group, fromUserId);
         AppUser to = member(group, toUserId);
         if (fromUserId == toUserId) {
             throw new BusinessRuleException("a member can't pay themselves");
         }
-        Map<Long, BigDecimal> balance = balanceAmounts(groupId);
+        Map<Long, BigDecimal> balance = calculator.current(groupId);
         BigDecimal owes = balance.get(fromUserId).negate(); // positive if they must pay
         BigDecimal owed = balance.get(toUserId);
         if (amount.compareTo(owes) > 0 || amount.compareTo(owed) > 0) {

@@ -25,7 +25,9 @@ public class MembershipService {
     /** A member may leave only when they owe nothing and are owed nothing. */
     @Transactional
     public ExpenseGroup leave(long groupId, long userId) {
-        BigDecimal balance = expenses.balanceAmounts(groupId).get(userId);
+        // locked and fresh: an expense or settlement at the same moment waits, instead of changing the
+        // balance between this check and the removal
+        BigDecimal balance = expenses.lockedBalanceAmounts(groupId).get(userId);
         if (balance != null && balance.signum() != 0) {
             throw new BusinessRuleException("settle the balance of " + balance + " before leaving the group");
         }
