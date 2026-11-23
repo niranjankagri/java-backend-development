@@ -94,6 +94,16 @@ class UserAndGroupApiTest {
     }
 
     @Test
+    @DisplayName("A password longer than 72 characters: 400 (BCrypt would ignore everything after byte 72)")
+    void passwordTooLong() throws Exception {
+        mvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\": \"Asha\", \"email\": \"asha-long@example.com\", \"password\": \""
+                                + "p".repeat(73) + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.password").exists());
+    }
+
+    @Test
     @DisplayName("Invalid user: 400 with the fields that are wrong (incl. a too-short password)")
     void invalidUser() throws Exception {
         mvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON)

@@ -1,6 +1,7 @@
 package jbdl.session07;
 
 import java.util.Arrays;
+import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -17,7 +18,7 @@ public final class Cli {
     public static String slug(String text) {
         // 1. remove accents (é -> e), 2. lower case, 3. the regular expression [^a-z0-9]+ means "one or
         //    more characters that are NOT a-z or 0-9": each such run becomes a single space
-        String cleaned = StringUtils.stripAccents(text).toLowerCase().replaceAll("[^a-z0-9]+", " ");
+        String cleaned = StringUtils.stripAccents(text).toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", " ");
         // split on spaces (empty parts dropped), then join the words with "-"
         return String.join("-", StringUtils.split(cleaned));
     }

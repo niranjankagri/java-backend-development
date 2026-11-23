@@ -1,6 +1,7 @@
 package jbdl.splitwise.users;
 
 import java.util.List;
+import java.util.Locale;
 import jbdl.splitwise.common.BusinessRuleException;
 import jbdl.splitwise.common.NotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,7 +24,7 @@ public class UserService {
     @Transactional
     public AppUser register(String name, String email, String rawPassword) {
         // "Asha@Example.com " and "asha@example.com" must be the same account
-        String normalisedEmail = email.trim().toLowerCase();
+        String normalisedEmail = email.trim().toLowerCase(Locale.ROOT);
         if (users.existsByEmail(normalisedEmail)) {
             throw new BusinessRuleException("email " + normalisedEmail + " is already registered");
         }

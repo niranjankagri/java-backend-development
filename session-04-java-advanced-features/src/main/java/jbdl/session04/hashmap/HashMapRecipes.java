@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -19,7 +20,7 @@ public final class HashMapRecipes {
     /** merge: insert 1 for a new word, otherwise add 1 to the old count. */
     public static Map<String, Integer> wordCounts(String text) {
         Map<String, Integer> counts = new TreeMap<>(); // sorted only so the output is readable
-        for (String word : text.toLowerCase().split("\\W+")) {
+        for (String word : text.toLowerCase(Locale.ROOT).split("\\W+")) {
             if (!word.isEmpty()) {
                 // merge = "put 1 if the word is new, otherwise old + 1". Without merge:
                 //   Integer old = counts.get(word);

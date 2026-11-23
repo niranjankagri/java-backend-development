@@ -1,6 +1,7 @@
 package jbdl.session03.functional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.IntPredicate;
@@ -24,7 +25,7 @@ public final class BuiltInInterfaces {
     public static final BiFunction<Integer, Integer, Integer> PERCENT_OF = (percent, amount) -> amount * percent / 100;
 
     /** UnaryOperator<T>: a Function whose input and output types are the same. */
-    public static final UnaryOperator<String> TRIM_AND_LOWER = text -> text.trim().toLowerCase();
+    public static final UnaryOperator<String> TRIM_AND_LOWER = text -> text.trim().toLowerCase(Locale.ROOT);
 
     /** BinaryOperator<T>: a BiFunction with all three types the same; what reduce() takes. */
     // Same as: (a, b) -> a >= b ? a : b   (maxBy builds it from a comparator)

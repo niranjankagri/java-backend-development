@@ -2,6 +2,7 @@ package jbdl.session15.web;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.util.Locale;
 import jbdl.session15.rates.RateService;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class RateController {
 
     @GetMapping("/{currency}")
     public ResponseEntity<RateView> rate(@PathVariable String currency, WebRequest request) {
-        String code = currency.toUpperCase();
+        String code = currency.toUpperCase(Locale.ROOT);
         BigDecimal rate = rates.rateToInr(code);
         String etag = "\"" + code + "-" + rate.toPlainString() + "\"";
 
@@ -52,7 +53,7 @@ public class RateController {
     /** Changing a rate updates the server cache; browsers see the new ETag on their next check. */
     @PutMapping("/{currency}")
     public RateView update(@PathVariable String currency, @RequestBody BigDecimal newRate) {
-        String code = currency.toUpperCase();
+        String code = currency.toUpperCase(Locale.ROOT);
         return new RateView(code, rates.update(code, newRate));
     }
 }

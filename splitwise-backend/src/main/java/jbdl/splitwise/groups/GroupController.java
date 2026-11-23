@@ -61,7 +61,9 @@ public class GroupController {
     }
 
     /** Leave the group: only with a zero balance; the creator can't leave. */
-    @PreAuthorize("@groupAccess.canAccess(#groupId, authentication)")
+    // Leaving the group: a member removes THEMSELF (or an admin removes someone). Membership alone is not
+    // enough, or any member could remove another member with a zero balance.
+    @PreAuthorize("@groupAccess.canAccess(#groupId, authentication) and @groupAccess.isSelfOrAdmin(#userId, authentication)")
     @DeleteMapping("/api/groups/{groupId}/members/{userId}")
     public GroupView removeMember(@PathVariable long groupId, @PathVariable long userId) {
         return GroupView.of(membership.leave(groupId, userId));

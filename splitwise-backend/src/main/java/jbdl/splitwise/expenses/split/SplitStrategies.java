@@ -12,13 +12,15 @@ public final class SplitStrategies {
     private SplitStrategies() {
     }
 
+    /**
+     * A switch expression over the enum has no default: a new split type that is not handled here is a
+     * compile error, instead of silently becoming PERCENT (as the first if-chain version did).
+     */
     public static SplitStrategy forType(SplitType type) {
-        if (type == SplitType.EQUAL) {
-            return EQUAL;
-        }
-        if (type == SplitType.EXACT) {
-            return EXACT;
-        }
-        return PERCENT;
+        return switch (type) {
+            case EQUAL -> EQUAL;
+            case EXACT -> EXACT;
+            case PERCENT -> PERCENT;
+        };
     }
 }

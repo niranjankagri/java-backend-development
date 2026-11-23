@@ -64,14 +64,16 @@ public final class OrderReports {
                 Collectors.mapping(Order::id, Collectors.toList())));
     }
 
-    /** flatMap: one stream of all line items across all orders, then the best-selling product. */
+    /** flatMap: one stream of all line items across all orders (not cancelled ones), then the best-selling product. */
     public static Optional<String> bestSellingProduct(List<Order> orders) {
         // The most advanced pipeline here. Step by step, as loops:
         //   1. Map<String, Integer> sold = new HashMap<>();
-        //      for (Order order : orders) for (Item item : order.items()) sold.merge(item.product(), item.quantity(), Integer::sum);
+        //      for (Order order : orders) if (order.status() != CANCELLED) for (Item item : order.items()) sold.merge(...);
         //   2. walk sold.entrySet() and keep the entry with the highest quantity (ties: the larger name);
         //   3. return its key, or Optional.empty() if there were no items.
+        // A cancelled order sold nothing, so it is skipped, the same as in revenue().
         return orders.stream()
+                .filter(order -> order.status() != Order.Status.CANCELLED)
                 .flatMap(order -> order.items().stream())
                 .collect(Collectors.groupingBy(Order.Item::product, Collectors.summingInt(Order.Item::quantity)))
                 .entrySet().stream()
