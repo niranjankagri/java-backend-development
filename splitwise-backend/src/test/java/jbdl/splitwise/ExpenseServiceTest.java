@@ -80,7 +80,7 @@ class ExpenseServiceTest {
     @Test
     @DisplayName("addExpense: computes equal shares and saves the expense with them")
     void addExpenseSavesShares() {
-        when(groups.get(10)).thenReturn(goa);
+        when(groups.getLocked(10)).thenReturn(goa);
         // a real save gives the expense an id; the mock does the same, then returns it
         when(expenses.save(any(Expense.class))).thenAnswer(call -> {
             Expense expense = call.getArgument(0);
@@ -100,7 +100,7 @@ class ExpenseServiceTest {
     @Test
     @DisplayName("addExpense: a payer outside the group is refused and nothing is saved")
     void payerMustBeMember() {
-        when(groups.get(10)).thenReturn(goa);
+        when(groups.getLocked(10)).thenReturn(goa);
 
         assertThatThrownBy(() -> service.addExpense(10, new AddExpense("Dinner", new BigDecimal("900.00"), 99L,
                 SplitType.EQUAL, List.of(new Participant(1L, null)))))
@@ -112,7 +112,7 @@ class ExpenseServiceTest {
     @Test
     @DisplayName("addExpense: the same participant twice is refused")
     void noDuplicateParticipants() {
-        when(groups.get(10)).thenReturn(goa);
+        when(groups.getLocked(10)).thenReturn(goa);
 
         assertThatThrownBy(() -> service.addExpense(10, new AddExpense("Dinner", new BigDecimal("900.00"), 1L,
                 SplitType.EQUAL, List.of(new Participant(2L, null), new Participant(2L, null)))))
@@ -122,11 +122,11 @@ class ExpenseServiceTest {
     @Test
     @DisplayName("recordSettlement: a valid repayment is saved")
     void settlementSaved() {
-        when(groups.get(10)).thenReturn(goa);
+        when(groups.getLocked(10)).thenReturn(goa);
         LinkedHashMap<Long, BigDecimal> balances = new LinkedHashMap<>();
         balances.put(1L, new BigDecimal("450.00"));   // Asha is owed 450
         balances.put(2L, new BigDecimal("-450.00"));  // Ravi owes 450
-        when(calculator.balances(10)).thenReturn(balances);
+        when(calculator.current(10)).thenReturn(balances);
 
         service.recordSettlement(10, 2, 1, new BigDecimal("450.00"));
 
@@ -136,11 +136,11 @@ class ExpenseServiceTest {
     @Test
     @DisplayName("recordSettlement: paying more than you owe is refused, nothing saved")
     void overpayRefused() {
-        when(groups.get(10)).thenReturn(goa);
+        when(groups.getLocked(10)).thenReturn(goa);
         LinkedHashMap<Long, BigDecimal> balances = new LinkedHashMap<>();
         balances.put(1L, new BigDecimal("450.00"));
         balances.put(2L, new BigDecimal("-450.00"));
-        when(calculator.balances(10)).thenReturn(balances);
+        when(calculator.current(10)).thenReturn(balances);
 
         assertThatThrownBy(() -> service.recordSettlement(10, 2, 1, new BigDecimal("500.00")))
                 .hasMessage("Ravi can pay Asha at most 450.00");

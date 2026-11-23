@@ -8,6 +8,7 @@ import jbdl.splitwise.users.UserService;
 import jbdl.splitwise.expenses.BalanceCalculator;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Rules about groups: who creates them, who can be added, who sees which groups. */
@@ -71,6 +72,18 @@ public class GroupService {
         ExpenseGroup group = groups.findById(groupId)
                 .orElseThrow(() -> new NotFoundException("group " + groupId + " not found"));
         group.getMembers().size(); // load the lazy member list while the transaction is still open
+        return group;
+    }
+
+    /**
+     * Like get, but locks the group's row until the caller's transaction ends (see
+     * ExpenseGroupRepository.lockById). MANDATORY: a lock outside a transaction would end at once.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public ExpenseGroup getLocked(long groupId) {
+        ExpenseGroup group = groups.lockById(groupId)
+                .orElseThrow(() -> new NotFoundException("group " + groupId + " not found"));
+        group.getMembers().size();
         return group;
     }
 

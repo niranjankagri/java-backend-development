@@ -42,6 +42,15 @@ public class BalanceCalculator {
     @Cacheable(value = CACHE, key = "#groupId")
     @Transactional(readOnly = true)
     public LinkedHashMap<Long, BigDecimal> balances(long groupId) {
+        return current(groupId);
+    }
+
+    /**
+     * The same calculation WITHOUT the cache, for a check that must not decide on an old value: the
+     * cached entry of another request's change is evicted only after that request returns, a moment
+     * after its commit. Runs in the caller's transaction.
+     */
+    public LinkedHashMap<Long, BigDecimal> current(long groupId) {
         ExpenseGroup group = groups.findById(groupId).orElseThrow();
         LinkedHashMap<Long, BigDecimal> balance = new LinkedHashMap<>();
         for (AppUser member : group.getMembers()) {

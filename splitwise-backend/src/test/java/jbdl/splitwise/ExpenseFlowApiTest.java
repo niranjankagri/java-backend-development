@@ -4,6 +4,7 @@ import static jbdl.splitwise.ApiTestSupport.as;
 import static jbdl.splitwise.ApiTestSupport.createGroup;
 import static jbdl.splitwise.ApiTestSupport.postJson;
 import static jbdl.splitwise.ApiTestSupport.register;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,6 +12,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import jbdl.splitwise.ApiTestSupport.TestUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -108,6 +116,37 @@ class ExpenseFlowApiTest {
         settle(meena, asha, "2000.00")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Meena can pay Asha at most 1800.00"));
+    }
+
+    @Test
+    @DisplayName("Ten identical settlements at the same moment: one is recorded, the others are refused (409)")
+    void settlementsAtTheSameMoment() throws Exception {
+        // Without the lock on the group, every request could check the same old balance (Meena owes 1800)
+        // before any of them committed, and Meena would pay Asha several times.
+        int attempts = 10;
+        CountDownLatch startLine = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(attempts);
+        List<Future<Integer>> results = new ArrayList<>();
+        for (int i = 0; i < attempts; i++) {
+            Callable<Integer> attempt = () -> {
+                startLine.await();
+                return settle(meena, asha, "1800.00").andReturn().getResponse().getStatus();
+            };
+            results.add(pool.submit(attempt));
+        }
+        startLine.countDown();
+
+        List<Integer> statuses = new ArrayList<>();
+        for (Future<Integer> result : results) {
+            statuses.add(result.get());
+        }
+        pool.shutdown();
+
+        assertThat(statuses).containsOnly(201, 409);
+        assertThat(statuses).filteredOn(code -> code == 201).hasSize(1);
+        mvc.perform(get("/api/groups/" + goa + "/balances").with(as(asha)))
+                .andExpect(jsonPath("$[0].balance").value(1700.00))   // Asha: 3500 - 1800, paid once
+                .andExpect(jsonPath("$[2].balance").value(0.00));     // Meena
     }
 
     @Test
