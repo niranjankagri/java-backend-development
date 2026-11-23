@@ -2,6 +2,7 @@ package jbdl.splitwise.common;
 
 import java.util.Map;
 import java.util.TreeMap;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -26,6 +27,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BusinessRuleException.class)
     public ProblemDetail conflict(BusinessRuleException e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    /**
+     * The DATABASE refused a write, e.g. the unique key on the email when two people register the same
+     * address at the same moment (both pass existsByEmail, one insert loses). 409, not 500, and without
+     * the database's message (table and column names), the same as the Airbnb backend.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail dataConflict(DataIntegrityViolationException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "the request conflicts with existing data");
     }
 
     @Override

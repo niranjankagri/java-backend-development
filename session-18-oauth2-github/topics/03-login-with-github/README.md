@@ -45,7 +45,8 @@ Design choices in [`MemberService`](../../src/main/java/jbdl/session18/members/M
 - The key is GitHub's **numeric id**, not the login: people rename their GitHub accounts
   (test `renamedAccount`).
 - There is no registration form: the first GitHub login creates the member.
-- Admins are GitHub logins listed in `APP_ADMIN_LOGINS`; everybody else is a `USER`.
+- Admins are the GitHub account ids listed in `APP_ADMIN_GITHUB_IDS` (the number from `gh api user --jq .id`,
+  not the login: a login can be renamed and then taken by someone else); everybody else is a `USER`.
 - No password column: GitHub checks passwords, not this app.
 
 ## Session cookie, not stateless
@@ -69,7 +70,7 @@ like any website. Two consequences, both in `SecurityConfig`:
 
 ```bash
 ./mvnw -pl session-18-oauth2-github package
-GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=... APP_ADMIN_LOGINS=<your-github-login> \
+GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=... APP_ADMIN_GITHUB_IDS=<your-github-id> \
   java -jar session-18-oauth2-github/target/session-18-oauth2-github-1.0.0-SNAPSHOT.jar
 ```
 

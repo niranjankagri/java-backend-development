@@ -22,8 +22,15 @@ public final class ReviewDtos {
 
         public static ReviewView of(Review review) {
             return new ReviewView(review.getId(), review.getBooking().getId(),
-                    review.getBooking().getGuest().getName(), review.getRating(), review.getComment(),
+                    firstName(review.getBooking().getGuest().getName()), review.getRating(), review.getComment(),
                     review.getCreatedAt());
+        }
+
+        /** "Meera Nair" becomes "Meera": reviews are public, the full name is not. */
+        static String firstName(String fullName) {
+            String trimmed = fullName.strip();
+            int space = trimmed.indexOf(' ');
+            return space < 0 ? trimmed : trimmed.substring(0, space);
         }
     }
 

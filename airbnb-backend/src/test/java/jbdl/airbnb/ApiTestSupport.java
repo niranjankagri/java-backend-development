@@ -49,7 +49,7 @@ abstract class ApiTestSupport {
 
     /** Registers a user with a unique email. */
     protected TestUser registerUser(String name) throws Exception {
-        String email = name.toLowerCase() + "-" + UUID.randomUUID() + "@example.com";
+        String email = name.toLowerCase().replace(' ', '.') + "-" + UUID.randomUUID() + "@example.com";
         String body = postJson("/api/users", """
                 {"name": "%s", "email": "%s", "password": "%s"}
                 """.formatted(name, email, PASSWORD))

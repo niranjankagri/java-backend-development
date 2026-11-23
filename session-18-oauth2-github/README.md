@@ -44,7 +44,7 @@ and start the app with its id and secret, as described in
 [topic 3](topics/03-login-with-github/README.md#run-it-with-your-own-github-oauth-app):
 
 ```bash
-GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=... APP_ADMIN_LOGINS=<your-github-login> \
+GITHUB_CLIENT_ID=... GITHUB_CLIENT_SECRET=... APP_ADMIN_GITHUB_IDS=<your-github-id> \
   java -jar session-18-oauth2-github/target/session-18-oauth2-github-1.0.0-SNAPSHOT.jar
 ```
 

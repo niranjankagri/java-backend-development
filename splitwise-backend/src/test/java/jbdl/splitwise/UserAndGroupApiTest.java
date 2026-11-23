@@ -4,12 +4,21 @@ import static jbdl.splitwise.ApiTestSupport.as;
 import static jbdl.splitwise.ApiTestSupport.createGroup;
 import static jbdl.splitwise.ApiTestSupport.postJson;
 import static jbdl.splitwise.ApiTestSupport.register;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import jbdl.splitwise.ApiTestSupport.TestUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +60,37 @@ class UserAndGroupApiTest {
         mvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(body.replace("ravi.dup", "RAVI.DUP")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("email ravi.dup@example.com is already registered"));
+    }
+
+    @Test
+    @DisplayName("The same email 10 times at the same moment: one 201, nine 409, never a 500")
+    void duplicateEmailAtTheSameMoment() throws Exception {
+        // All 10 requests can pass the existsByEmail check before any insert commits; then the unique key
+        // on the email refuses the late inserts, and that refusal must also be a 409.
+        String body = "{\"name\": \"Meera\", \"email\": \"meera-" + UUID.randomUUID()
+                + "@example.com\", \"password\": \"a-good-password-1\"}";
+        int attempts = 10;
+        CountDownLatch startLine = new CountDownLatch(1);
+        ExecutorService pool = Executors.newFixedThreadPool(attempts);
+        List<Future<Integer>> results = new ArrayList<>();
+        for (int i = 0; i < attempts; i++) {
+            Callable<Integer> attempt = () -> {
+                startLine.await();
+                return mvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(body))
+                        .andReturn().getResponse().getStatus();
+            };
+            results.add(pool.submit(attempt));
+        }
+        startLine.countDown();                     // go!
+
+        List<Integer> statuses = new ArrayList<>();
+        for (Future<Integer> result : results) {
+            statuses.add(result.get());
+        }
+        pool.shutdown();
+
+        assertThat(statuses).containsOnly(201, 409);
+        assertThat(statuses).filteredOn(code -> code == 201).hasSize(1);
     }
 
     @Test
