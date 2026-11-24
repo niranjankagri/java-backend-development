@@ -41,6 +41,19 @@ public class GroupAccess {
                 .orElse(false);
     }
 
+    /**
+     * A user's profile (name and email) is visible to the user, to anyone who shares a group with them
+     * (you need a member's id to add them or to split an expense), and to admins. Everyone else gets 403,
+     * also for an id that doesn't exist, so the answer doesn't reveal which ids are taken; for admins the
+     * service still returns 404.
+     */
+    public boolean canSeeUser(long userId, Authentication authentication) {
+        if (isSelfOrAdmin(userId, authentication)) {
+            return true;
+        }
+        return groups.shareAGroup(userId, authentication.getName());
+    }
+
     private static boolean isAdmin(Authentication authentication) {
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             if (authority.getAuthority().equals("ROLE_ADMIN")) {

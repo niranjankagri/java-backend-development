@@ -2,9 +2,11 @@ package jbdl.splitwise;
 
 import static jbdl.splitwise.ApiTestSupport.as;
 import static jbdl.splitwise.ApiTestSupport.createGroup;
+import static jbdl.splitwise.ApiTestSupport.postJson;
 import static jbdl.splitwise.ApiTestSupport.register;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,5 +84,47 @@ class SecurityTest {
                 .andExpect(jsonPath("$[*].email", hasItem(asha.email())))
                 .andExpect(jsonPath("$[0].passwordHash").doesNotExist());
         mvc.perform(get("/api/groups/" + group).with(httpBasic(ADMIN_EMAIL, ADMIN_PASSWORD))).andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/users/{id}: self, group co-members and admins only; 403 for everyone else, also for an unknown id")
+    void userLookup() throws Exception {
+        TestUser asha = register(mvc, "Asha");
+        TestUser ravi = register(mvc, "Ravi");
+        TestUser stranger = register(mvc, "Stranger");
+        long group = createGroup(mvc, "Goa trip", asha);
+        postJson(mvc, "/api/groups/" + group + "/members", "{\"userId\": " + ravi.id() + "}", asha)
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/users/" + asha.id())).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/users/" + asha.id()).with(as(asha)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(asha.email()));
+        mvc.perform(get("/api/users/" + asha.id()).with(as(ravi))).andExpect(status().isOk());     // co-member
+        mvc.perform(get("/api/users/" + ravi.id()).with(as(asha))).andExpect(status().isOk());
+        mvc.perform(get("/api/users/" + asha.id()).with(as(stranger))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/users/" + stranger.id()).with(as(asha))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/users/999999").with(as(asha))).andExpect(status().isForbidden());
+
+        mvc.perform(get("/api/users/" + stranger.id()).with(httpBasic(ADMIN_EMAIL, ADMIN_PASSWORD)))
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/users/999999").with(httpBasic(ADMIN_EMAIL, ADMIN_PASSWORD)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @DisplayName("GET /api/users/{id}: after leaving the only shared group, the former co-member gets 403")
+    void userLookupEndsWithTheGroup() throws Exception {
+        TestUser asha = register(mvc, "Asha");
+        TestUser ravi = register(mvc, "Ravi");
+        long group = createGroup(mvc, "Short trip", asha);
+        postJson(mvc, "/api/groups/" + group + "/members", "{\"userId\": " + ravi.id() + "}", asha)
+                .andExpect(status().isOk());
+        mvc.perform(get("/api/users/" + asha.id()).with(as(ravi))).andExpect(status().isOk());
+
+        mvc.perform(delete("/api/groups/" + group + "/members/" + ravi.id()).with(as(ravi)))
+                .andExpect(status().is2xxSuccessful());
+
+        mvc.perform(get("/api/users/" + asha.id()).with(as(ravi))).andExpect(status().isForbidden());
     }
 }

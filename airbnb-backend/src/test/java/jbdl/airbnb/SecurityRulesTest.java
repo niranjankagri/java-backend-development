@@ -59,4 +59,18 @@ class SecurityRulesTest extends ApiTestSupport {
                 .andExpect(jsonPath("$.password").doesNotExist())
                 .andExpect(jsonPath("$.passwordHash").doesNotExist());
     }
+
+    @Test
+    @DisplayName("GET /api/users/{id}: 401 without a login; your own id 200; anyone else's, or an unknown id, 403")
+    void userLookupIsSelfOnly() throws Exception {
+        TestUser host = registerUser("Asha");
+        TestUser guest = registerUser("Ravi");
+
+        mvc.perform(get("/api/users/" + host.id())).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/users/" + host.id()).with(as(host)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(host.email()));
+        mvc.perform(get("/api/users/" + host.id()).with(as(guest))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/users/999999").with(as(guest))).andExpect(status().isForbidden());
+    }
 }
