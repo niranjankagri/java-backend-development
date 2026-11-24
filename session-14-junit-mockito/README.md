@@ -1,7 +1,9 @@
 # Session 14: Unit Testing with JUnit & Mockito
 
 A small library-loans service (borrow a book, give it back, pay a fine) written to be tested, and its
-23 tests at every level of the test pyramid.
+25 tests at every level of the test pyramid, two of them about threads: [`BookThreadSafetyTest`](src/test/java/jbdl/session14/BookThreadSafetyTest.java)
+(the last copy) and [`LoanLimitThreadSafetyTest`](src/test/java/jbdl/session14/LoanLimitThreadSafetyTest.java)
+(the 3-book limit).
 
 | # | Topic | Tests | README |
 |---|---|---|---|
