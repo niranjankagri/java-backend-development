@@ -3,6 +3,8 @@ package jbdl.session14.loans;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,6 +24,11 @@ public class LoanService {
     private final LibraryRepository repository;
     private final Notifier notifier;
     private final Clock clock;
+    // One lock object per member. borrow() checks "fewer than 3 books" and then saves the loan: two steps.
+    // Two borrows by the same member at the same moment could both count 2 and both save, ending at 4.
+    // The lock makes the check and the save one step per member; different members still borrow in
+    // parallel. With a database, a row lock on the member (SELECT ... FOR UPDATE) does the same job.
+    private final ConcurrentMap<String, Object> memberLocks = new ConcurrentHashMap<>();
 
     /** Everything the service needs comes in through the constructor, so a test can pass fakes. */
     public LoanService(LibraryRepository repository, Notifier notifier, Clock clock) {
@@ -31,6 +38,12 @@ public class LoanService {
     }
 
     public Loan borrow(long bookId, String member) {
+        synchronized (memberLocks.computeIfAbsent(member, name -> new Object())) {
+            return borrowLocked(bookId, member);
+        }
+    }
+
+    private Loan borrowLocked(long bookId, String member) {
         if (repository.countLoansOf(member) >= MAX_BOOKS_PER_MEMBER) {
             throw new IllegalStateException(member + " already has " + MAX_BOOKS_PER_MEMBER + " books");
         }
