@@ -11,23 +11,24 @@ import org.springframework.stereotype.Service;
 /**
  * Places orders: one SYNCHRONOUS call (shipping fee: the order needs the answer now) and one
  * ASYNCHRONOUS message (OrderPlaced: order-service does not wait for anyone to read it). Topic 1
- * explains when to use which.
+ * explains when to use which. The message goes through the {@link OrderOutbox} (topic 2), so an order
+ * is answered even while Kafka is down, and its event follows when Kafka is back.
  */
 @Service
 public class OrderService {
 
     private final ShippingFees shippingFees;
-    private final OrderEvents events;
+    private final OrderOutbox outbox;
     private final BigDecimal freeShippingFrom;
     // Orders are kept in memory to keep the session about messaging; Session 11 showed how to store them.
     private final Map<Long, Order> orders = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong(1);
 
     // freeShippingFrom comes from config-server when it runs (topic 3), else from application-orders.properties
-    public OrderService(ShippingFees shippingFees, OrderEvents events,
+    public OrderService(ShippingFees shippingFees, OrderOutbox outbox,
                         @Value("${orders.free-shipping-from}") BigDecimal freeShippingFrom) {
         this.shippingFees = shippingFees;
-        this.events = events;
+        this.outbox = outbox;
         this.freeShippingFrom = freeShippingFrom;
     }
 
@@ -49,10 +50,11 @@ public class OrderService {
         BigDecimal total = request.amount().add(shipping.fee());
         Order order = new Order(nextId.getAndIncrement(), request.customerEmail(), request.city(),
                 request.amount(), shipping.fee(), shipping.source(), total);
+        // Tell the world: the order and its event are stored together, and the outbox relay sends the
+        // event to Kafka (a database would write both in one transaction). A new random event id per
+        // event, so consumers can spot duplicates (topic 2).
         orders.put(order.id(), order);
-
-        // Tell the world. A new random event id per event, so consumers can spot duplicates (topic 2).
-        events.publish(new OrderPlaced(UUID.randomUUID().toString(), order.id(), order.customerEmail(), total));
+        outbox.add(new OrderPlaced(UUID.randomUUID().toString(), order.id(), order.customerEmail(), total));
         return order;
     }
 

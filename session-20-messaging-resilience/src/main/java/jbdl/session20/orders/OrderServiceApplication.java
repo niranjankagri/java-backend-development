@@ -5,16 +5,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * order-service: takes orders, asks shipping-service for the fee, and tells everyone who is interested
  * that an order was placed, by publishing an {@link OrderPlaced} event to Kafka. It does not know who
- * reads the event (today: notification-service).
+ * reads the event (today: notification-service). @EnableScheduling runs the {@link OrderOutbox} relay,
+ * which sends the events.
  *
  * Start config-server, Kafka and shipping-service first, then:
  *   java -jar target/session-20-messaging-resilience-1.0.0-SNAPSHOT-orders.jar
  */
 @SpringBootApplication
+@EnableScheduling
 public class OrderServiceApplication {
 
     public static void main(String[] args) {

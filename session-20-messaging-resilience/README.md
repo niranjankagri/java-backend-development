@@ -20,7 +20,7 @@ The example has four small services:
 | # | Topic | Code | README |
 |---|---|---|---|
 | 1 | Synchronous calls vs. asynchronous messaging | [`OrderService`](src/main/java/jbdl/session20/orders/OrderService.java) | [01-sync-vs-async-messaging](topics/01-sync-vs-async-messaging/README.md) |
-| 2 | Apache Kafka: producer, consumer, idempotent consumer | [`KafkaOrderEvents`](src/main/java/jbdl/session20/orders/KafkaOrderEvents.java), [`OrderPlacedListener`](src/main/java/jbdl/session20/notifications/OrderPlacedListener.java), [`NotificationService`](src/main/java/jbdl/session20/notifications/NotificationService.java) | [02-kafka](topics/02-kafka/README.md) |
+| 2 | Apache Kafka: producer, consumer, outbox, idempotent consumer | [`KafkaOrderEvents`](src/main/java/jbdl/session20/orders/KafkaOrderEvents.java), [`OrderOutbox`](src/main/java/jbdl/session20/orders/OrderOutbox.java), [`OrderPlacedListener`](src/main/java/jbdl/session20/notifications/OrderPlacedListener.java), [`NotificationService`](src/main/java/jbdl/session20/notifications/NotificationService.java) | [02-kafka](topics/02-kafka/README.md) |
 | 3 | Spring Cloud Config | [`ConfigServerApplication`](src/main/java/jbdl/session20/config/ConfigServerApplication.java), [`config-repo`](src/main/resources/config-repo) | [03-spring-cloud-config](topics/03-spring-cloud-config/README.md) |
 | 4 | Circuit breaker and fallback | [`ResilienceConfig`](src/main/java/jbdl/session20/orders/ResilienceConfig.java), [`ShippingRates`](src/main/java/jbdl/session20/orders/ShippingRates.java) | [04-circuit-breaker](topics/04-circuit-breaker/README.md) |
 | 5 | Retry and timeouts | [`ResilienceConfig`](src/main/java/jbdl/session20/orders/ResilienceConfig.java), [`ShippingRates`](src/main/java/jbdl/session20/orders/ShippingRates.java) | [05-retry-and-timeouts](topics/05-retry-and-timeouts/README.md) |
@@ -31,6 +31,7 @@ The example has four small services:
 - Publish events with `KafkaTemplate` and consume them with `@KafkaListener`, as JSON, with a key
   that keeps the events of one order in order.
 - Explain topics, partitions, offsets and consumer groups, and why a consumer must be idempotent.
+- Avoid the dual write with an outbox: an order is placed even while Kafka is down, and its event follows.
 - Run a config server and let services take their settings from it, with a local fallback.
 - Protect a remote call with a timeout, a retry and a circuit breaker, and give a visible fallback.
 - Test all of it: with fakes and lambdas, with a fake HTTP server, and end to end with a real Kafka
@@ -39,7 +40,7 @@ The example has four small services:
 ## Run it
 
 ```bash
-./mvnw -pl session-20-messaging-resilience verify   # 22 tests; the 3 end-to-end tests need Docker
+./mvnw -pl session-20-messaging-resilience verify   # 29 tests; the 4 end-to-end tests need Docker
 ```
 
 Then Kafka and the four services (five terminals, in this order):

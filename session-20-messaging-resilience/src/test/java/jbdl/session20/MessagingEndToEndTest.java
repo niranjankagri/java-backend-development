@@ -11,6 +11,7 @@ import java.util.function.BooleanSupplier;
 import jbdl.session20.config.ConfigServerApplication;
 import jbdl.session20.notifications.NotificationServiceApplication;
 import jbdl.session20.orders.OrderEvents;
+import jbdl.session20.orders.OrderOutbox;
 import jbdl.session20.orders.OrderPlaced;
 import jbdl.session20.orders.OrderServiceApplication;
 import jbdl.session20.shipping.ShippingServiceApplication;
@@ -30,7 +31,8 @@ import org.testcontainers.utility.DockerImageName;
 
 /**
  * The whole session at once, all real: a Kafka broker in Docker (Testcontainers) and the four services
- * on free ports: config-server, shipping-service, order-service and notification-service.
+ * on free ports: config-server, shipping-service, order-service and notification-service. One test
+ * pauses the broker to show the outbox at work.
  * Without Docker the class is skipped, not failed (CI has Docker).
  */
 @Testcontainers(disabledWithoutDocker = true)
@@ -115,6 +117,32 @@ class MessagingEndToEndTest {
 
         assertThat(order.get("shippingFee")).isEqualTo(99);
         assertThat(order.get("shippingFeeSource")).isEqualTo("fallback: shipping-service failed");
+    }
+
+    @Test
+    @DisplayName("Kafka paused: the order is answered at once, and its message arrives when Kafka is back (outbox)")
+    void kafkaDown() {
+        // docker pause freezes the broker: it stays "up" but answers nothing, like a broker that hangs
+        String broker = KAFKA.getContainerId();
+        KAFKA.getDockerClient().pauseContainerCmd(broker).exec();
+        Map<String, Object> order;
+        try {
+            long start = System.nanoTime();
+            order = placeOrder("kiran@example.com", "Delhi", "450");
+
+            // Before the outbox, place() waited for Kafka, so this request hung until the producer gave up.
+            assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofSeconds(5));
+            assertThat(order.get("total")).isEqualTo(490);
+            assertThat(orders.getBean(OrderOutbox.class).pending())
+                    .extracting(OrderPlaced::customerEmail).contains("kiran@example.com");
+        } finally {
+            KAFKA.getDockerClient().unpauseContainerCmd(broker).exec();
+        }
+
+        waitUntil(() -> !notificationsTo("kiran@example.com").isEmpty());
+        assertThat(notificationsTo("kiran@example.com")).singleElement().satisfies(notification ->
+                assertThat(notification.get("message"))
+                        .isEqualTo("Hello kiran@example.com! Thank you for order " + order.get("id") + ". Total: 490 INR."));
     }
 
     private Map<String, Object> placeOrder(String email, String city, String amount) {
