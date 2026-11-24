@@ -24,9 +24,10 @@ public class KafkaOrderEvents implements OrderEvents {
         String key = String.valueOf(event.orderId());
 
         // send() returns at once with a CompletableFuture (Session 5) that completes when the broker
-        // has stored the event. join() waits for that, so a broker problem fails this request
-        // instead of being lost silently. Simpler to read, but slower: a service that sends many
-        // events would rather react to the future later than wait for each one.
+        // has stored the event. join() waits for that, so a broker problem throws here and the
+        // OrderOutbox relay keeps the event for its next try, instead of it being lost silently.
+        // Simpler to read, but slower: a service that sends many events would rather react to the
+        // future later than wait for each one.
         kafka.send(TOPIC, key, event).join();
     }
 }

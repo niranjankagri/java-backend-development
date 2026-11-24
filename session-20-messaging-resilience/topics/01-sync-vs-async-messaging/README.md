@@ -9,7 +9,8 @@ synchronous communication. This session adds the other kind: order-service **pub
 ```java
 shipping = shippingFees.quote(request.city());          // synchronous: the order needs the fee NOW
 ...
-events.publish(new OrderPlaced(eventId, order.id(), ...)); // asynchronous: nobody has to answer
+outbox.add(new OrderPlaced(eventId, order.id(), ...));   // asynchronous: nobody has to answer;
+                                                        // the outbox relay sends it to Kafka (topic 2)
 ```
 
 ## The difference

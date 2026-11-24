@@ -37,6 +37,41 @@ The second line keeps Java class names **out** of the message: the JSON is the c
 consumer has its own [`OrderPlaced`](../../src/main/java/jbdl/session20/notifications/OrderPlaced.java)
 class (the producer/consumer idea of Session 19, topic 5).
 
+## The outbox: no order without its event
+
+Storing the order and then sending the event is a **dual write**: two systems, and no transaction
+covers both. If Kafka is down after the order is stored, the order exists but its event is never
+sent, and the customer gets an error for an order that was placed. Before the outbox, `place()` also
+waited for Kafka, so a broker that hangs made every order request hang (60 s, the producer's
+`max.block.ms`).
+
+The **outbox pattern** writes the event next to the order and sends it later:
+[`OrderService`](../../src/main/java/jbdl/session20/orders/OrderService.java) adds the event to
+[`OrderOutbox`](../../src/main/java/jbdl/session20/orders/OrderOutbox.java), and a scheduled relay
+sends what is waiting, oldest first, every 500 ms (`orders.outbox.relay-every-ms`):
+
+```java
+orders.put(order.id(), order);
+outbox.add(new OrderPlaced(...));          // returns at once; no Kafka call in the request
+
+@Scheduled(fixedDelayString = "${orders.outbox.relay-every-ms:500}")
+public synchronized int relay() {
+    while ((next = pending.peek()) != null) {
+        try { events.publish(next); } catch (RuntimeException e) { break; }   // keep it, try again later
+        pending.remove();
+    }
+}
+```
+
+- The relay stops at the first failure, so no event is skipped and the events of one order still
+  reach Kafka in order.
+- It delivers **at least once**: an event Kafka stored but whose answer was lost is sent again. The
+  idempotent consumer below takes care of that.
+- Here the outbox is in memory, like the orders (nothing can fail between the two writes, but a
+  restart loses both). With a database (Session 11) it is an `outbox` table, written in the **same
+  transaction** as the order row; the relay reads unsent rows and marks them sent. Tools such as
+  Debezium read the table's change log instead of polling it.
+
 ## Consumer: @KafkaListener
 
 [`OrderPlacedListener`](../../src/main/java/jbdl/session20/notifications/OrderPlacedListener.java):
@@ -124,10 +159,15 @@ OrderPlaced 72d6bd09-544f-4461-ac96-5f46f55bbf2a for order 2: message written
   the message from the template, and the same event twice gives one message. No Kafka needed.
 - [`OrderServiceTest`](../../src/test/java/jbdl/session20/orders/OrderServiceTest.java): every order
   publishes one event with a new event id (a lambda collects the events instead of Kafka).
+- [`OrderOutboxTest`](../../src/test/java/jbdl/session20/orders/OrderOutboxTest.java): Kafka down, the
+  order is placed and its event waits, then goes once Kafka is back; oldest first; a failed event is
+  not skipped.
 - [`MessagingEndToEndTest`](../../src/test/java/jbdl/session20/MessagingEndToEndTest.java): a real
   Kafka broker in Docker (Testcontainers) and the real services. An order arrives as a message; the
   same event published twice gives one message (a third "marker" event with the same key shows that
-  both copies were read). Skipped without Docker, like Session 15's Redis tests.
+  both copies were read). With the broker paused (`docker pause`), an order is still answered at once
+  and its message arrives after the broker is back. Skipped without Docker, like Session 15's Redis
+  tests.
 
 ## Interview questions
 
@@ -141,3 +181,7 @@ OrderPlaced 72d6bd09-544f-4461-ac96-5f46f55bbf2a for order 2: message written
   continues from it; committing after processing gives at-least-once delivery.
 - **Kafka vs. RabbitMQ?** Kafka keeps a replayable log that many groups read independently; RabbitMQ
   routes messages to queues and removes them once acknowledged.
+- **What is the outbox pattern, and why?** Saving data and publishing an event are two writes to two
+  systems (a dual write); one can succeed without the other. Write the event to an outbox table in the
+  same database transaction as the data, and let a relay publish it. The price: at-least-once delivery
+  and a short delay, so consumers must be idempotent.
