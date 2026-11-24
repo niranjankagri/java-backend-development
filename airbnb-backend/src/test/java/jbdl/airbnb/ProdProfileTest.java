@@ -19,6 +19,7 @@ import java.util.concurrent.Future;
 import jbdl.airbnb.bookings.BookingDtos.BookingRequest;
 import jbdl.airbnb.bookings.BookingService;
 import jbdl.airbnb.common.BusinessRuleException;
+import jbdl.airbnb.common.TimeConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ class ProdProfileTest extends ApiTestSupport {
     @ServiceConnection
     static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"));
 
-    private static final LocalDate CHECK_IN = LocalDate.now().plusDays(30);
+    private static final LocalDate CHECK_IN = LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(30);
     private static final LocalDate CHECK_OUT = CHECK_IN.plusDays(3);
 
     @Autowired

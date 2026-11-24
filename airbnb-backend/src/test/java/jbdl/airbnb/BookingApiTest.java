@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import jbdl.airbnb.common.TimeConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import org.springframework.test.web.servlet.ResultActions;
 @AutoConfigureMockMvc
 class BookingApiTest extends ApiTestSupport {
 
-    private static final LocalDate CHECK_IN = LocalDate.now().plusDays(30);
+    private static final LocalDate CHECK_IN = LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(30);
     private static final LocalDate CHECK_OUT = CHECK_IN.plusDays(3);
 
     private TestUser asha;
@@ -97,7 +98,7 @@ class BookingApiTest extends ApiTestSupport {
     @Test
     @DisplayName("Wrong dates are 400: check-in yesterday, check-out before check-in, more than 30 nights")
     void wrongDates() throws Exception {
-        book(ravi, flat, LocalDate.now().minusDays(1), CHECK_OUT, 2)
+        book(ravi, flat, LocalDate.now(TimeConfig.BUSINESS_ZONE).minusDays(1), CHECK_OUT, 2)
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("checkIn must be today or later"));
         book(ravi, flat, CHECK_OUT, CHECK_IN, 2)
@@ -149,7 +150,7 @@ class BookingApiTest extends ApiTestSupport {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("booking " + booking + " is already cancelled"));
 
-        long today = bookingId(ravi, LocalDate.now(), LocalDate.now().plusDays(1));
+        long today = bookingId(ravi, LocalDate.now(TimeConfig.BUSINESS_ZONE), LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(1));
         mvc.perform(post("/api/bookings/" + today + "/cancel").with(as(ravi)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("a booking can only be cancelled before its check-in day"));

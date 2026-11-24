@@ -15,7 +15,9 @@ Register with `POST /api/users`, then use that email and password as HTTP Basic 
 ## API
 
 Open to everyone: register, and browsing (search, listings, a host's listings, reviews). Everything else
-needs a login: HTTP Basic with email and password (`curl -u email:password ...`).
+needs a login: HTTP Basic with email and password (`curl -u email:password ...`). Date rules ("check-in
+today or later", cancel before check-in, review from check-out) count days in India's time zone
+(`Asia/Kolkata`, [`TimeConfig`](src/main/java/jbdl/airbnb/common/TimeConfig.java)), not the server's UTC.
 
 | Method | URL | What | Login |
 |---|---|---|---|

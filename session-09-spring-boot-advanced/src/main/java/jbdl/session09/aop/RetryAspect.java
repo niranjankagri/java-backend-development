@@ -4,16 +4,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
  * Retries a @Retryable method on TransientFailureException. Any other exception, or the last failed
  * attempt, goes straight to the caller. (Spring Framework 7 also has a ready-made @Retryable; this one
  * is written out to show that an around advice can call proceed() more than once.)
+ *
+ * @Order(2): inside PerformanceAspect (1), so a @Timed + @Retryable method is timed once, over all its
+ * attempts.
  */
 @Slf4j
 @Aspect
 @Component
+@Order(2)
 public class RetryAspect {
 
     @Around("@annotation(retryable)")

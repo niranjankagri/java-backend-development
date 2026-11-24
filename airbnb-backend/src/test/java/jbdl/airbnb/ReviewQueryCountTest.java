@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import jbdl.airbnb.bookings.Booking;
 import jbdl.airbnb.bookings.BookingRepository;
+import jbdl.airbnb.common.TimeConfig;
 import jbdl.airbnb.listings.ListingRepository;
 import jbdl.airbnb.reviews.Review;
 import jbdl.airbnb.reviews.ReviewRepository;
@@ -50,7 +51,7 @@ class ReviewQueryCountTest extends ApiTestSupport {
         for (int i = 0; i < count; i++) {
             TestUser guest = registerUser("Guest");
             Booking stay = bookings.save(new Booking(listings.getReferenceById(flat), users.getReferenceById(guest.id()),
-                    LocalDate.now().minusDays(10), LocalDate.now().minusDays(8), 2, new BigDecimal("7000.00")));
+                    LocalDate.now(TimeConfig.BUSINESS_ZONE).minusDays(10), LocalDate.now(TimeConfig.BUSINESS_ZONE).minusDays(8), 2, new BigDecimal("7000.00")));
             reviews.save(new Review(stay, 5, "Lovely"));
         }
         return flat;

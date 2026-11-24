@@ -1,6 +1,7 @@
 package jbdl.airbnb.listings;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,10 +33,12 @@ public class ListingService {
 
     private final ListingRepository listings;
     private final UserService users;
+    private final Clock clock;   // "today" in the business's zone (TimeConfig)
 
-    public ListingService(ListingRepository listings, UserService users) {
+    public ListingService(ListingRepository listings, UserService users, Clock clock) {
         this.listings = listings;
         this.users = users;
+        this.clock = clock;
     }
 
     @Transactional
@@ -112,7 +115,7 @@ public class ListingService {
             result = listings.search(city.trim(), guests, priceLimit, pageRequest);
         } else {
             DateRange stay = new DateRange(checkIn, checkOut);   // 400 if only one date, or out before in
-            if (stay.checkIn().isBefore(LocalDate.now())) {
+            if (stay.checkIn().isBefore(LocalDate.now(clock))) {
                 throw new IllegalArgumentException("checkIn must be today or later");
             }
             result = listings.searchAvailable(city.trim(), guests, priceLimit, stay.checkIn(), stay.checkOut(),
