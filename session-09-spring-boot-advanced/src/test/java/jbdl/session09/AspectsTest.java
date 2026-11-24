@@ -120,6 +120,22 @@ class AspectsTest {
     }
 
     @Test
+    @DisplayName("@Timed wraps @Retryable (@Order): charge() with two retries is timed once, over all attempts")
+    void timingWrapsTheRetries(CapturedOutput output) {
+        payments.failNextCalls(2);
+
+        orders.place(request("Kiran"));
+
+        String log = output.getOut();
+        // one timing line for charge(), not one per attempt
+        assertThat(log.split("PaymentGateway\\.charge\\(\\.\\.\\) took", -1)).hasSize(2);
+        // and it comes after both retries, so the time covers them
+        assertThat(log.indexOf("PaymentGateway.charge(..) attempt 2 failed"))
+                .isNotNegative()
+                .isLessThan(log.indexOf("PaymentGateway.charge(..) took"));
+    }
+
+    @Test
     @DisplayName("Self-invocation trap: inner this.place(...) calls skip the aspects")
     void selfInvocationBypassesProxy() {
         // when: placeAll is called through the proxy, but it calls place() on `this` (the real object)

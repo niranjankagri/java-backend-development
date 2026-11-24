@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import jbdl.airbnb.bookings.Booking;
 import jbdl.airbnb.bookings.BookingRepository;
+import jbdl.airbnb.common.TimeConfig;
 import jbdl.airbnb.listings.ListingRepository;
 import jbdl.airbnb.users.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +35,7 @@ import org.springframework.test.web.servlet.ResultActions;
 class ListingSearchTest extends ApiTestSupport {
 
     // a stay of 3 nights, starting 30 days from today
-    private static final LocalDate CHECK_IN = LocalDate.now().plusDays(30);
+    private static final LocalDate CHECK_IN = LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(30);
     private static final LocalDate CHECK_OUT = CHECK_IN.plusDays(3);
 
     @Autowired
@@ -168,7 +169,7 @@ class ListingSearchTest extends ApiTestSupport {
         search(dates(CHECK_OUT, CHECK_IN))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("checkOut must be after checkIn"));
-        search(dates(LocalDate.now().minusDays(1), CHECK_OUT))
+        search(dates(LocalDate.now(TimeConfig.BUSINESS_ZONE).minusDays(1), CHECK_OUT))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("checkIn must be today or later"));
         search("&checkIn=20-12-2026&checkOut=" + CHECK_OUT)          // not an ISO date

@@ -79,13 +79,16 @@ DEBUG [checkout-42] j.session09.aop.ServiceTraceAspect - -> OrderService.place(.
 
 ## Tests
 
-[`AspectsTest`](../../src/test/java/jbdl/session09/AspectsTest.java) (7 tests): proxy, audit on success
+[`AspectsTest`](../../src/test/java/jbdl/session09/AspectsTest.java) (8 tests): proxy, audit on success
 and failure, retry succeeds on the 3rd attempt, retry gives up after 3, timing and trace log lines
-(captured with `OutputCaptureExtension`), and the self-invocation trap.
+(captured with `OutputCaptureExtension`), timing around the retries (`@Order`), and the self-invocation
+trap.
 
 ## Interview questions
 
 - **Which advice can stop the method from running?** `@Around` (by not calling `proceed()`); `@Before` only by throwing.
-- **What happens if two aspects match one method?** Both run; set the order with `@Order` on the aspect classes.
+- **What happens if two aspects match one method?** Both run, nested; without `@Order` the nesting is not
+  defined. Here `PerformanceAspect` is `@Order(1)` and `RetryAspect` `@Order(2)`: the lowest number is the
+  outermost, so `charge()` is timed once over all its attempts instead of once per attempt.
 - **Can an aspect advise a private method?** Not with Spring AOP: proxies only see public calls from outside.
 - **Why `throws Throwable` on an around advice?** `proceed()` can throw anything the method throws.

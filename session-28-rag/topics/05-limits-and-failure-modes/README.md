@@ -47,6 +47,14 @@ instructions." Current models resist an instruction this obvious. Keep the rule 
 rely on it: a RAG system that can **act** (send mail, change data) must never let retrieved text
 decide what it does.
 
+The rule only works if the model can tell where the data ends. Each source sits between
+`<source ...>` and `</source>`; a chunk that itself contained `</source>` would end its source early,
+and the text after it would look like part of the prompt. So
+[`RagPrompt`](../../src/main/java/jbdl/session28/rag/RagPrompt.java) writes a closing tag inside a
+chunk as `&lt;/source` (any case) and a `"` in the `from` attribute as `&quot;`; only its own tags
+close a source (`CourseAssistantTest.aChunkCannotCloseItsSourceEarly`). Another way: a random
+delimiter per request that no document can know in advance.
+
 ## 4. A source that is simply wrong
 
 The more dangerous case needs no instruction at all. The planted note was replaced by a plain,

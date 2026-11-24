@@ -2,6 +2,7 @@ package jbdl.airbnb.reviews;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +25,13 @@ public class ReviewService {
     private final ReviewRepository reviews;
     private final BookingService bookings;
     private final ListingService listings;
+    private final Clock clock;   // "today" in the business's zone (TimeConfig)
 
-    public ReviewService(ReviewRepository reviews, BookingService bookings, ListingService listings) {
+    public ReviewService(ReviewRepository reviews, BookingService bookings, ListingService listings, Clock clock) {
         this.reviews = reviews;
         this.bookings = bookings;
         this.listings = listings;
+        this.clock = clock;
     }
 
     @Transactional
@@ -40,7 +43,7 @@ public class ReviewService {
         if (booking.getStatus() != BookingStatus.CONFIRMED) {
             throw new BusinessRuleException("a cancelled booking cannot be reviewed");
         }
-        if (booking.getCheckOut().isAfter(LocalDate.now())) {
+        if (booking.getCheckOut().isAfter(LocalDate.now(clock))) {
             throw new BusinessRuleException("a stay can be reviewed from its check-out day");
         }
         if (reviews.existsByBookingId(bookingId)) {

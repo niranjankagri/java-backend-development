@@ -4,15 +4,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
  * Around advice: runs INSTEAD of the method, decides when to call it (proceed()) and can measure,
  * change the arguments or the result, or catch exceptions. Here: log how long every @Timed method took.
+ *
+ * @Order: when several aspects match one method, the LOWEST number runs OUTERMOST. PaymentGateway.charge
+ * is both @Timed and @Retryable; timing (1) wraps the retry (2), so the time logged is what the caller
+ * waited, all attempts included, logged once. Without @Order the nesting is not defined: the time could
+ * cover one attempt (and be logged three times), and it could change with the next refactoring.
  */
 @Slf4j
 @Aspect
 @Component
+@Order(1)
 public class PerformanceAspect {
 
     /**

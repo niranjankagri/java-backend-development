@@ -11,6 +11,7 @@ import jbdl.airbnb.bookings.BookingDtos.BookingRequest;
 import jbdl.airbnb.bookings.BookingEvents.BookingConfirmed;
 import jbdl.airbnb.bookings.BookingService;
 import jbdl.airbnb.common.BusinessRuleException;
+import jbdl.airbnb.common.TimeConfig;
 import jbdl.airbnb.listings.ListingDtos.ListingRequest;
 import jbdl.airbnb.listings.ListingService;
 import jbdl.airbnb.notifications.Notification;
@@ -33,7 +34,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @SpringBootTest
 class BookingEventsTest {
 
-    private static final LocalDate CHECK_IN = LocalDate.now().plusDays(30);
+    private static final LocalDate CHECK_IN = LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(30);
     private static final LocalDate CHECK_OUT = CHECK_IN.plusDays(3);
 
     @Autowired

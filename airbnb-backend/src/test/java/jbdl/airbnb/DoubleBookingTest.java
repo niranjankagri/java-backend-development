@@ -19,6 +19,7 @@ import jbdl.airbnb.bookings.BookingRepository;
 import jbdl.airbnb.bookings.BookingService;
 import jbdl.airbnb.bookings.BookingStatus;
 import jbdl.airbnb.common.BusinessRuleException;
+import jbdl.airbnb.common.TimeConfig;
 import jbdl.airbnb.listings.ListingDtos.ListingRequest;
 import jbdl.airbnb.listings.ListingService;
 import jbdl.airbnb.users.UserService;
@@ -59,7 +60,7 @@ class DoubleBookingTest {
             guests.add(userService.register("Guest " + i, "guest-" + UUID.randomUUID() + "@example.com", "password-123")
                     .getEmail());
         }
-        BookingRequest sameNights = new BookingRequest(flat, LocalDate.now().plusDays(30), LocalDate.now().plusDays(33), 2);
+        BookingRequest sameNights = new BookingRequest(flat, LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(30), LocalDate.now(TimeConfig.BUSINESS_ZONE).plusDays(33), 2);
 
         CountDownLatch startLine = new CountDownLatch(1);
         ExecutorService pool = Executors.newFixedThreadPool(GUESTS);

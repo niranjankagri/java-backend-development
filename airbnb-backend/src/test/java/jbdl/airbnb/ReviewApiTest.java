@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import jbdl.airbnb.bookings.Booking;
 import jbdl.airbnb.bookings.BookingRepository;
+import jbdl.airbnb.common.TimeConfig;
 import jbdl.airbnb.listings.ListingRepository;
 import jbdl.airbnb.users.AppUserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +50,7 @@ class ReviewApiTest extends ApiTestSupport {
     /** A stay of the guest from daysAgoIn to daysAgoOut days ago (negative: in the future). */
     private Booking stay(TestUser guest, int daysAgoIn, int daysAgoOut) {
         return bookings.save(new Booking(listings.getReferenceById(flat), users.getReferenceById(guest.id()),
-                LocalDate.now().minusDays(daysAgoIn), LocalDate.now().minusDays(daysAgoOut), 2,
+                LocalDate.now(TimeConfig.BUSINESS_ZONE).minusDays(daysAgoIn), LocalDate.now(TimeConfig.BUSINESS_ZONE).minusDays(daysAgoOut), 2,
                 new BigDecimal("7000.00")));
     }
 

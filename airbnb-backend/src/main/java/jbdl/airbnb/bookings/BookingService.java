@@ -1,6 +1,7 @@
 package jbdl.airbnb.bookings;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,13 +30,15 @@ public class BookingService {
     private final ListingService listings;
     private final UserService users;
     private final ApplicationEventPublisher events;
+    private final Clock clock;   // "today" in the business's zone (TimeConfig), not the server's
 
     public BookingService(BookingRepository bookings, ListingService listings, UserService users,
-                          ApplicationEventPublisher events) {
+                          ApplicationEventPublisher events, Clock clock) {
         this.bookings = bookings;
         this.listings = listings;
         this.users = users;
         this.events = events;
+        this.clock = clock;
     }
 
     /**
@@ -48,7 +51,7 @@ public class BookingService {
     public BookingView book(String guestEmail, BookingRequest request) {
         AppUser guest = users.byEmail(guestEmail);
         DateRange stay = new DateRange(request.checkIn(), request.checkOut());   // 400: no dates or out before in
-        if (stay.checkIn().isBefore(LocalDate.now())) {
+        if (stay.checkIn().isBefore(LocalDate.now(clock))) {
             throw new IllegalArgumentException("checkIn must be today or later");
         }
         if (stay.nights() > MAX_NIGHTS) {
@@ -91,7 +94,7 @@ public class BookingService {
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             throw new BusinessRuleException("booking " + bookingId + " is already cancelled");
         }
-        if (!booking.getCheckIn().isAfter(LocalDate.now())) {
+        if (!booking.getCheckIn().isAfter(LocalDate.now(clock))) {
             throw new BusinessRuleException("a booking can only be cancelled before its check-in day");
         }
         booking.cancel();   // the dates are free again: search and booking only count CONFIRMED stays
