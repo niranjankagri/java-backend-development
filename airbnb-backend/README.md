@@ -21,7 +21,7 @@ needs a login: HTTP Basic with email and password (`curl -u email:password ...`)
 |---|---|---|---|
 | POST | `/api/users` | register `{"name","email","password"}` | no |
 | GET | `/api/users/me` | who am I | yes |
-| GET | `/api/users/{id}` | a user | yes |
+| GET | `/api/users/{id}` | your own user only (anyone else's id, or an unknown one: 403) | yes |
 | GET | `/api/users/{id}/listings` | a host's listings | no |
 | POST | `/api/listings` | create a listing; the logged-in user is the host | yes |
 | GET | `/api/listings/{id}` | a listing | no |

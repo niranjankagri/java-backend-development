@@ -64,6 +64,7 @@ What changed in the API since Session 21:
 | `DELETE /api/listings/1?hostId=1` | `DELETE /api/listings/1` |
 | registration `{"name","email"}` | `{"name","email","password"}` |
 | | new: `GET /api/users/me` |
+| `GET /api/users/{id}`: any user | your own id only, 403 otherwise (an email is personal data; listings and bookings show ids) |
 
 ## A real run
 

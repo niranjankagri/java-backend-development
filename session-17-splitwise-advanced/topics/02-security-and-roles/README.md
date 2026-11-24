@@ -7,9 +7,9 @@ Session 16's approach, applied to Splitwise.
 | Caller | Can |
 |---|---|
 | Anyone | register (`POST /api/users`), `GET /actuator/health` |
-| Logged-in user | create groups (they become the creator), list **their own** groups |
+| Logged-in user | create groups (they become the creator), list **their own** groups, look up themselves and the people they share a group with (`GET /api/users/{id}`) |
 | Member of a group | everything about that group: members, expenses, balances, settle-up, settlements |
-| `ADMIN` | `GET /api/admin/users`, and any group (support staff) |
+| `ADMIN` | `GET /api/admin/users`, any group and any user (support staff) |
 
 Login is HTTP Basic with the **email** and password ([`EmailUserDetailsService`](../../../splitwise-backend/src/main/java/jbdl/splitwise/security/EmailUserDetailsService.java));
 passwords are BCrypt hashes in `app_user.password_hash`.
@@ -31,8 +31,9 @@ stays one line; the logic is ordinary Java.
 | Before (Session 12-13) | Now | Why |
 |---|---|---|
 | `POST /api/groups {"name", "createdByUserId"}` | `{"name"}`; the creator is the logged-in user | nobody can create groups in someone else's name |
-| `POST /api/users {"name", "email"}` | `+ "password"` (12-100 chars) | accounts need a password |
+| `POST /api/users {"name", "email"}` | `+ "password"` (12-72 chars) | accounts need a password; BCrypt reads only the first 72 bytes |
 | unknown group → 404 | 403 for a user, 404 for an admin | a 404 would tell outsiders which group ids exist |
+| `GET /api/users/{id}`: anyone, any id | self, group co-members, admin; 403 otherwise (also for an unknown id) | a user's email is personal data ([`GroupAccess.canSeeUser`](../../../splitwise-backend/src/main/java/jbdl/splitwise/security/GroupAccess.java)) |
 
 ## The first admin
 
